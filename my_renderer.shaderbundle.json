@@ -1,0 +1,10 @@
+{
+  "BaseVertex": {
+    "type": "vertex",
+    "file": "shaders/base.vert"
+  },
+  "BaseFragment": {
+    "type": "fragment",
+    "file": "shaders/base.frag"
+  }
+}
