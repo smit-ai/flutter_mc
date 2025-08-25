@@ -148,7 +148,7 @@ class TopInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: [Text(text)],
+      children: [Text(text,textAlign: TextAlign.center,)],
     );
   }
 }

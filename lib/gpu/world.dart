@@ -16,7 +16,9 @@ class WorldRender extends CustomPainter {
   Vector3 cameraPosition = Vector3(0, 0, 0);
   double horizonRotate = 0.0;
   double verticalRotate = 0.0;
-  int viewDistance= kDebugMode?2:3;
+  double renderRatio;
+  int viewDistance= 2;
+  MediaQueryData mediaQueryData;
   //resource
   late gpu.RenderPipeline _pipeline;
   late gpu.Texture _sampledTexture;
@@ -25,7 +27,9 @@ class WorldRender extends CustomPainter {
   Size? _lastSize;
   late gpu.UniformSlot _frameInfoSlot;
   late gpu.UniformSlot _texSlot;
-  WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,this.onMapGenerated){
+  late double dpr;
+  WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,this.onMapGenerated,this.mediaQueryData,this.renderRatio){
+    dpr=mediaQueryData.devicePixelRatio*renderRatio;
     //shader
     final vertexShader = shaderLibrary["BaseVertex"]!;
     final fragmentShader = shaderLibrary["BaseFragment"]!;
@@ -46,7 +50,7 @@ class WorldRender extends CustomPainter {
     //buffer
     _transients = gpu.gpuContext.createHostBuffer();
   }
-  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+5; // 区块对角线一半
+  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+10; // 区块对角线一半
   bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
     final chunkCenter = Vector3(
       (pos.x * chunkSize + chunkSize/2).toDouble(),
@@ -59,8 +63,8 @@ class WorldRender extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final width = size.width.toInt();
-    final height = size.height.toInt();
+    final width = (size.width*dpr).toInt();
+    final height = (size.height*dpr).toInt();
     // 仅在尺寸变化时更新透视矩阵
     if (_perspectiveMatrix == null || size != _lastSize) {
       _perspectiveMatrix = makePerspectiveMatrix(
@@ -77,6 +81,7 @@ class WorldRender extends CustomPainter {
       width,
       height,
       enableRenderTargetUsage: true,
+      sampleCount: 1,
       enableShaderReadUsage: true,
       coordinateSystem: gpu.TextureCoordinateSystem.renderToTexture,
     );
@@ -191,6 +196,7 @@ class WorldRender extends CustomPainter {
 
     commandBuffer.submit();
     final image = renderTexture.asImage();
+    canvas.scale(1/dpr, 1/dpr);
     canvas.drawImage(image, Offset.zero, Paint());
   }
 

@@ -22,6 +22,7 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
   double verticalRotate = -0.6;
   double moveSpeed=4;
   double _moveSpeedByTime = 0;
+  double renderRatio=0.5;
   bool forwardState=false,
       backState=false,
       leftState=false,
@@ -127,10 +128,14 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
-    final game = CustomPaint(
+    final ratio=mediaQueryData.devicePixelRatio;
+    final painter=WorldRender(cameraPosition, horizonRotate, verticalRotate,markDirty,mediaQueryData,renderRatio);
+    final game =CustomPaint(
       size: mediaQueryData.size,
-      painter: WorldRender(cameraPosition, horizonRotate, verticalRotate,markDirty),
+      painter: painter,
     );
+
+
 
 
     final controlPane = ControlPane(
@@ -143,10 +148,12 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
       onPointerDown: onPointerDown,
       onPointerMove: onPointerMove,
     );
+    final renderSize=mediaQueryData.size*mediaQueryData.devicePixelRatio*renderRatio;
     return Stack(children: [
       game,
       controlPane,
-      TopInfo('Cam:${vecToString(cameraPosition)} HorRot:${horizonRotate.toStringAsFixed(1)} VertRot:${verticalRotate.toStringAsFixed(1)}'),
+      TopInfo('Cam:${vecToString(cameraPosition)} HorRot:${horizonRotate.toStringAsFixed(1)} VertRot:${verticalRotate.toStringAsFixed(1)} '
+          'Render:${renderSize.width.toInt()}x${renderSize.height.toInt()}'),
     ]);
   }
 }
