@@ -12,17 +12,20 @@ import 'shaders.dart';
 
 
 class WorldRender extends CustomPainter {
+  VoidCallback onMapGenerated;
   Vector3 cameraPosition = Vector3(0, 0, 0);
   double horizonRotate = 0.0;
   double verticalRotate = 0.0;
-  int viewDistance= kDebugMode?1:2;
+  int viewDistance= kDebugMode?2:3;
   //resource
   late gpu.RenderPipeline _pipeline;
   late gpu.Texture _sampledTexture;
   late gpu.HostBuffer _transients;
   Matrix4? _perspectiveMatrix;
   Size? _lastSize;
-  WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate){
+  late gpu.UniformSlot _frameInfoSlot;
+  late gpu.UniformSlot _texSlot;
+  WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,this.onMapGenerated){
     //shader
     final vertexShader = shaderLibrary["BaseVertex"]!;
     final fragmentShader = shaderLibrary["BaseFragment"]!;
@@ -31,6 +34,8 @@ class WorldRender extends CustomPainter {
       vertexShader,
       fragmentShader,
     );
+    _frameInfoSlot = _pipeline.vertexShader.getUniformSlot('FrameInfo');
+    _texSlot = _pipeline.fragmentShader.getUniformSlot('tex');
     //texture
     final mainImg=imageAssets.grass;
     _sampledTexture = gpu.gpuContext.createTexture(
@@ -41,13 +46,14 @@ class WorldRender extends CustomPainter {
     //buffer
     _transients = gpu.gpuContext.createHostBuffer();
   }
+  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+5; // 区块对角线一半
   bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
     final chunkCenter = Vector3(
       (pos.x * chunkSize + chunkSize/2).toDouble(),
       maxHeight/2,
       (pos.z * chunkSize + chunkSize/2).toDouble(),
     );
-    final chunkRadius = chunkSize * sqrt(3)/2; // 区块对角线一半
+
     return frustumContainsSphere(viewProj, chunkCenter, chunkRadius);
   }
 
@@ -109,12 +115,10 @@ class WorldRender extends CustomPainter {
     //cull
     pass.setCullMode(gpu.CullMode.backFace);
 
-
-    final texSlot = _pipeline.fragmentShader.getUniformSlot('tex');
-    pass.bindTexture(texSlot, _sampledTexture);
+    pass.bindTexture(_texSlot, _sampledTexture);
 
     //uniform
-    final frameInfoSlot = _pipeline.vertexShader.getUniformSlot('FrameInfo');
+
     final persp = _perspectiveMatrix!;
     final focusDirection = Vector3(
       cos(horizonRotate) * cos(verticalRotate),
@@ -124,18 +128,21 @@ class WorldRender extends CustomPainter {
     final view = makeViewMatrix(cameraPosition, focusDirection+cameraPosition, upDirection);
     final pvs=persp*view;
     //calc chunk
-    final x=cameraPosition.x/chunkSize;
-    final z=cameraPosition.z/chunkSize;
+    final int x=(cameraPosition.x/chunkSize).floor();
+    final int  z=(cameraPosition.z/chunkSize).floor();
 
     // final List<double> mergedVertices = [];
     // int count=0;
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
       for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){
-        final chunkPosition=ChunkPosition(x.floor()+chunkDistanceX, z.floor()+chunkDistanceZ);
+        final chunkPosition=ChunkPosition(x+chunkDistanceX, z+chunkDistanceZ);
         if(chunkManager.isExists(chunkPosition)){
           final chunk=chunkManager.chunks[chunkPosition]!;
-          if(!isChunkVisible(chunkPosition, pvs)){
-            continue;//can not see this chunk, skip
+          if(!(x==chunkPosition.x&&z==chunkPosition.z)){
+            //not current chunk
+            if(!isChunkVisible(chunkPosition, pvs)){
+              continue;//can not see this chunk, skip
+            }
           }
           final chunkData=chunk.chunkData;
           if(chunkData!=null){
@@ -143,6 +150,10 @@ class WorldRender extends CustomPainter {
             for(int x=0;x<chunkSize;x++){
               for(int z=0;z<chunkSize;z++){
                 for(int y=0;y<maxHeight;y++){
+                  //check visible
+                  if(!chunk.isBlockVisible(x, y, z, cameraPosition)){
+                    continue;
+                  }
                   final block=chunkData.data[x][y][z];
                   //draw
                   if(block.type==BlockType.grass){
@@ -154,7 +165,7 @@ class WorldRender extends CustomPainter {
                         pvs *trans,
                       ),
                     );
-                    pass.bindUniform(frameInfoSlot, mvp);
+                    pass.bindUniform(_frameInfoSlot, mvp);
                     pass.draw();
                   }
                 }
@@ -163,7 +174,7 @@ class WorldRender extends CustomPainter {
           }
         }else{
           //request
-          chunkManager.generateChunk(chunkPosition);
+          chunkManager.generateChunk(chunkPosition,onComplete: onMapGenerated);
         }
       }
     }

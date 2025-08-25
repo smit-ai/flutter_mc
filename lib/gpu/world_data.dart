@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gpu_demo/config.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 final chunkSize = 16;
 final strength = 9;
@@ -64,15 +65,16 @@ class ChunkManager {
     generateChunk(ChunkPosition(0, 0));
   }
 
-  void generateChunk(ChunkPosition position) async {
+  void generateChunk(ChunkPosition position,{VoidCallback? onComplete}) async {
     if (chunks.containsKey(position)) {
       return;
     }
     final chunk = Chunk(position, this);
     chunks[position] = chunk;
-    ChunkData data = Chunk.generate((position, chunk.directionalVec));
-    // ChunkData data=await compute(Chunk.generate,(position,chunk.directionalVec));
+    // ChunkData data = Chunk.generate((position, chunk.directionalVec));
+    ChunkData data=await compute(Chunk.generate,(position,chunk.directionalVec));
     chunk.chunkData = data;
+    onComplete?.call();
   }
 
   bool isExists(ChunkPosition position) {
@@ -104,15 +106,100 @@ double getOppo(double v){
   }
   return v2;
 }
+final List<(int,int,int)> around=[
+  (-1,-1,-1),
+  (-1,-1,0),
+  (-1,-1,1),
+  (-1,0,-1),
+  (-1,0,0),
+  (-1,0,1),
+  (-1,1,-1),
+  (-1,1,0),
+  (-1,1,1),
+  (0,-1,-1),
+  (0,-1,0),
+  (0,-1,1),
+  (0,0,-1),
+  (0,0,1),
+  (0,1,-1),
+  (0,1,0),
+  (0,1,1),
+  (1,-1,-1),
+  (1,-1,0),
+  (1,-1,1),
+  (1,0,-1),
+  (1,0,0),
+  (1,0,1),
+  (1,1,-1),
+  (1,1,0),
+  (1,1,1),
+];
+int sign(double v){
+  if(v==0){
+    return 0;
+  }
+  return v>0?1:-1;
+}
+bool isOpaque(BlockType type){
+  return type!=BlockType.none;
+}
 class Chunk {
   ChunkPosition position;
   ChunkManager chunkManager;
   late List<double> directionalVec; //右上，左上，左下，右下
   ChunkData? chunkData;
 
-  bool isVisible(int x,int y,int z){
-    final data=chunkData!;
-    throw new Exception("not implemented");
+  static bool isValidXZ(int x, int y, int z){
+    return x>=0 && x<chunkSize && z>=0 && z<chunkSize;
+  }
+  static (int dcx,int dcz,int x,int z) accessChunk(int x,int z){
+    int dcx=0;
+    int dcz=0;
+    if(x<0){
+      dcx=-1;x+=chunkSize;
+    }else if(x>=chunkSize){
+      dcx=1;x-=chunkSize;
+    }
+    if(z<0){
+      dcz=-1;z+=chunkSize;
+    }else if(z>=chunkSize){
+      dcz=1;z-=chunkSize;
+    }
+    return (dcx,dcz,x,z);
+  }
+  bool _isOpaque(int x, int y, int z){
+    if(y<0 || y>=chunkSize){
+      return false;
+    }
+    final data = chunkData!;
+    if(!isValidXZ(x, y, z)){
+      final (dcx,dcz,xNew,zNew)=accessChunk(x, z);
+      final chunkNewPosition=ChunkPosition(position.x+dcx, position.z+dcz);
+      if(chunkManager.isExists(chunkNewPosition)){
+        final chunkDataNew=chunkManager.chunks[chunkNewPosition]!.chunkData;
+        if(chunkDataNew==null){
+          return true;
+        }
+        return isOpaque(chunkDataNew.data[xNew][y][zNew].type);
+      }
+      return true;
+    }else{
+      return isOpaque(data.data[x][y][z].type);
+    }
+
+  }
+  bool isBlockVisible(int x, int y, int z, Vector3 cameraPos) {
+    final (cx,cz)=position.toWorldIndex();
+    final blockPos = Vector3(x.toDouble() + cx, y.toDouble(), z.toDouble() + cz);
+    final direction = cameraPos - blockPos;
+    final dx=sign(direction.x);
+    final dy=sign(direction.y);
+    final dz=sign(direction.z);
+
+    if(_isOpaque(x+dx, y, z)&&_isOpaque(x, y+dy, z)&&_isOpaque(x, y, z+dz)){
+      return false;
+    }
+    return true;
   }
 
   static double calculateDirectionalVec(

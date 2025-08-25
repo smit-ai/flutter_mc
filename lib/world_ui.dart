@@ -35,6 +35,11 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     ticker=createTicker((elapsed) {
+      if(needBuild){
+        setState(() {
+          needBuild=false;
+        });
+      }
       deltaTime=elapsed-_lastTime;
       _lastTime=elapsed;
       calculateMoveSpeedByTime();
@@ -114,14 +119,19 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
       verticalRotate = min(max(-rad90,newVerticalRotate),rad90);
     });
   }
+  bool needBuild=false;
+  void markDirty(){
+    needBuild=true;
+  }
 
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
     final game = CustomPaint(
       size: mediaQueryData.size,
-      painter: WorldRender(cameraPosition, horizonRotate, verticalRotate),
+      painter: WorldRender(cameraPosition, horizonRotate, verticalRotate,markDirty),
     );
+
 
     final controlPane = ControlPane(
       onForward: (state){forwardState=state;},

@@ -30,7 +30,7 @@ class ControlPane extends StatelessWidget {
 
   const ControlPane({
     super.key,
-    this.buttonSize = 60,
+    this.buttonSize = 70,
     required this.onForward,
     required this.onBack,
     required this.onLeft,
