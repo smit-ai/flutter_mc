@@ -110,6 +110,11 @@ class Chunk {
   late List<double> directionalVec; //右上，左上，左下，右下
   ChunkData? chunkData;
 
+  bool isVisible(int x,int y,int z){
+    final data=chunkData!;
+    throw new Exception("not implemented");
+  }
+
   static double calculateDirectionalVec(
     int x,
     int z,

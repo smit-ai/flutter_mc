@@ -41,6 +41,15 @@ class WorldRender extends CustomPainter {
     //buffer
     _transients = gpu.gpuContext.createHostBuffer();
   }
+  bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
+    final chunkCenter = Vector3(
+      (pos.x * chunkSize + chunkSize/2).toDouble(),
+      maxHeight/2,
+      (pos.z * chunkSize + chunkSize/2).toDouble(),
+    );
+    final chunkRadius = chunkSize * sqrt(3)/2; // 区块对角线一半
+    return frustumContainsSphere(viewProj, chunkCenter, chunkRadius);
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -91,9 +100,10 @@ class WorldRender extends CustomPainter {
     pass.setDepthCompareOperation(gpu.CompareFunction.less);
 
 
-    final vertices = _transients.emplace(blockVertices);
-    // final indices = transients.emplace(cubeIndices);
+    final vertices = _transients.emplace(blockVerticesByte);
     pass.bindVertexBuffer(vertices, 36);
+    // final indices = transients.emplace(cubeIndices);
+
     // pass.bindIndexBuffer(indices, gpu.IndexType.int16, 36);
 
     //cull
@@ -117,11 +127,16 @@ class WorldRender extends CustomPainter {
     final x=cameraPosition.x/chunkSize;
     final z=cameraPosition.z/chunkSize;
 
+    // final List<double> mergedVertices = [];
+    // int count=0;
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
       for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){
         final chunkPosition=ChunkPosition(x.floor()+chunkDistanceX, z.floor()+chunkDistanceZ);
         if(chunkManager.isExists(chunkPosition)){
           final chunk=chunkManager.chunks[chunkPosition]!;
+          if(!isChunkVisible(chunkPosition, pvs)){
+            continue;//can not see this chunk, skip
+          }
           final chunkData=chunk.chunkData;
           if(chunkData!=null){
             final (chunkDx,chunkDz)=chunkPosition.toWorldIndex();
@@ -131,6 +146,8 @@ class WorldRender extends CustomPainter {
                   final block=chunkData.data[x][y][z];
                   //draw
                   if(block.type==BlockType.grass){
+                    // mergedVertices.addAll(getBlockVertices(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble()));
+                    // count++;
                     final trans=translation(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble());
                     final mvp = _transients.emplace(
                       float32Mat(
@@ -150,9 +167,20 @@ class WorldRender extends CustomPainter {
         }
       }
     }
+
+    // final vertices = _transients.emplace(float32(mergedVertices));
+    // pass.bindVertexBuffer(vertices, count*36);
+    // final mvp = _transients.emplace(
+    //   float32Mat(
+    //     pvs ,
+    //   ),
+    // );
+    // pass.bindUniform(frameInfoSlot, mvp);
+    // pass.draw();
+
     commandBuffer.submit();
     final image = renderTexture.asImage();
-    canvas.drawImage(image, Offset(0, 0), Paint());
+    canvas.drawImage(image, Offset.zero, Paint());
   }
 
 

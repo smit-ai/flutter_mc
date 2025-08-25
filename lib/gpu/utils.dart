@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:vector_math/vector_math_64.dart';
@@ -72,7 +73,7 @@ const double bottomUVEnd = 1.0;
 const double radius=0.5;
 // 草方块顶点数据列表
 // 每个顶点包含: x, y, z, 法线x, 法线y, 法线z, uvX, uvY
-List<double> _grassBlockVertices = [
+final List<double> blockVertices = [
   // 前面（侧面纹理）+z
   -radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 1.0,
   -radius,  radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 0.0,
@@ -121,7 +122,18 @@ List<double> _grassBlockVertices = [
   radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVEnd,   0.0,
   -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
 ];
-final blockVertices=float32(_grassBlockVertices);
+final entries=blockVertices.length/8;
+List<double> getBlockVertices(double dx,double dy,double dz){
+
+  final vericesClone=List<double>.from(blockVertices);
+  for(int i=0;i<entries;i++){
+    vericesClone[i*8+0]+=dx;
+    vericesClone[i*8+1]+=dy;
+    vericesClone[i*8+2]+=dz;
+  }
+  return vericesClone;
+}
+final blockVerticesByte=float32(blockVertices);
 final double scale=0.5;
 final scaleMatrix=Matrix4.diagonal3(Vector3(scale,scale,scale));
 final upDirection = Vector3(0, 1, 0);
@@ -178,4 +190,67 @@ final imageAssets=ImageAssets();
 
 String vecToString(Vector3 vec3){
   return '(${vec3.x.toStringAsFixed(1)},${vec3.y.toStringAsFixed(1)},${vec3.z.toStringAsFixed(1)})';
+}
+
+// 在WorldRender类外部或工具类中添加
+bool frustumContainsSphere(Matrix4 viewProj, Vector3 center, double radius) {
+  // 提取视锥体平面
+  final List<Vector4> planes = [];
+  // 左平面
+  planes.add(Vector4(
+    viewProj[3] + viewProj[0],
+    viewProj[7] + viewProj[4],
+    viewProj[11] + viewProj[8],
+    viewProj[15] + viewProj[12],
+  ));
+  // 右平面
+  planes.add(Vector4(
+    viewProj[3] - viewProj[0],
+    viewProj[7] - viewProj[4],
+    viewProj[11] - viewProj[8],
+    viewProj[15] - viewProj[12],
+  ));
+  // 下平面
+  planes.add(Vector4(
+    viewProj[3] + viewProj[1],
+    viewProj[7] + viewProj[5],
+    viewProj[11] + viewProj[9],
+    viewProj[15] + viewProj[13],
+  ));
+  // 上平面
+  planes.add(Vector4(
+    viewProj[3] - viewProj[1],
+    viewProj[7] - viewProj[5],
+    viewProj[11] - viewProj[9],
+    viewProj[15] - viewProj[13],
+  ));
+  // 近平面
+  planes.add(Vector4(
+    viewProj[3] + viewProj[2],
+    viewProj[7] + viewProj[6],
+    viewProj[11] + viewProj[10],
+    viewProj[15] + viewProj[14],
+  ));
+  // 远平面
+  planes.add(Vector4(
+    viewProj[3] - viewProj[2],
+    viewProj[7] - viewProj[6],
+    viewProj[11] - viewProj[10],
+    viewProj[15] - viewProj[14],
+  ));
+
+  // 归一化平面
+  for (var plane in planes) {
+    final length = sqrt(plane.x*plane.x + plane.y*plane.y + plane.z*plane.z);
+    plane /= length;
+  }
+
+  // 检查球是否在所有平面内部
+  for (var plane in planes) {
+    final distance = plane.x*center.x + plane.y*center.y + plane.z*center.z + plane.w;
+    if (distance < -radius) {
+      return false; // 球在平面外部
+    }
+  }
+  return true;
 }
