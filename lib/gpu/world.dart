@@ -33,9 +33,10 @@ class WorldRender extends CustomPainter {
   late List<List<List<BufferWidthLength>>> faceBufferViews;
   late gpu.BufferView vertices;
 
+  final ValueNotifier<int> notifier;
   WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,
       this.onMapGenerated, this.mediaQueryData, this.renderRatio,
-      ) :super() {
+      this.notifier) :super(repaint: notifier) {
     dpr = mediaQueryData.devicePixelRatio * renderRatio;
     //shader
     final vertexShader = shaderLibrary["BaseVertex"]!;
@@ -73,7 +74,7 @@ class WorldRender extends CustomPainter {
             growable: false), growable: false);
 
   }
-  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+10; // 区块对角线一半
+  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+8; // 区块对角线一半
   bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
     final chunkCenter = Vector3(
       (pos.x * chunkSize + chunkSize/2).toDouble(),

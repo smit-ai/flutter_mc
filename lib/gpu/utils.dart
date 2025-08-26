@@ -202,7 +202,8 @@ final imageAssets=ImageAssets();
 
 
 String vecToString(Vector3 vec3){
-  return '(${vec3.x.toStringAsFixed(1)},${vec3.y.toStringAsFixed(1)},${vec3.z.toStringAsFixed(1)})';
+  const precision=1;
+  return '(${vec3.x.toStringAsFixed(precision)},${vec3.y.toStringAsFixed(precision)},${vec3.z.toStringAsFixed(precision)})';
 }
 
 // 在WorldRender类外部或工具类中添加
