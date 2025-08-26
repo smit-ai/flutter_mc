@@ -1,16 +1,16 @@
-# flutter_gpu_demo
+# flutter-mc
 
-A new Flutter project.
+A Minecraft-like game demo using Flutter GPU API.
 
-## Getting Started
+![](./screenshots/main.jpg)
 
-This project is a starting point for a Flutter application.
+**Note: need impeller backend** (windows unavailable now)
 
-A few resources to get you started if this is your first Flutter project:
+# feature
+- different types of blocks
+- chunk-based
+- terrain generation
+- face culling
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# on working
+- lighting

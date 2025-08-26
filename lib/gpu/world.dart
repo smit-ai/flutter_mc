@@ -172,7 +172,7 @@ class WorldRender extends CustomPainter {
     pass.bindUniform(_frameInfoSlot, mvp);
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
-    final int  z=((cameraPosition.z+radius)/chunkSize).floor();
+    final int z=((cameraPosition.z+radius)/chunkSize).floor();
 
 
     // final List<double> mergedVertices = [];
@@ -220,26 +220,20 @@ class WorldRender extends CustomPainter {
                     // mergedVertices.addAll(getBlockVertices(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble()));
                     // count++;
                     if(!identical(lastTexture, _grassTexture)){
-                      pass.bindTexture(_texSlot, _grassTexture);
                       lastTexture=_grassTexture;
                     }
-                    pass.bindUniform(_translationSlot, t);
-                    pass.draw();
                   }else if(block.type==BlockType.log){
                     if(!identical(lastTexture, _logTexture)){
-                      pass.bindTexture(_texSlot, _logTexture);
                       lastTexture=_logTexture;
                     }
-                    pass.bindUniform(_translationSlot, t);
-                    pass.draw();
                   }else if(block.type==BlockType.leaf){
                     if(!identical(lastTexture, _leafTexture)){
-                      pass.bindTexture(_texSlot, _leafTexture);
                       lastTexture=_leafTexture;
                     }
-                    pass.bindUniform(_translationSlot, t);
-                    pass.draw();
                   }
+                  pass.bindTexture(_texSlot, lastTexture!);
+                  pass.bindUniform(_translationSlot, t);
+                  pass.draw();
                 }
               }
             }
