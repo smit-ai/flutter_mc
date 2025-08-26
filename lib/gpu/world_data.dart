@@ -251,6 +251,19 @@ class Chunk {
     }
     return (dx,dy,dz);
   }
+  bool isBlockVisible(int x, int y, int z, Vector3 cameraPos) {
+    final (cx,cz)=position.toWorldIndex();
+    final blockPos = Vector3(x.toDouble() + cx, y.toDouble(), z.toDouble() + cz);
+    final direction = cameraPos - blockPos;
+    final dx=sign(direction.x);
+    final dy=sign(direction.y);
+    final dz=sign(direction.z);
+
+    if(_isOpaque(x+dx, y, z)&&_isOpaque(x, y+dy, z)&&_isOpaque(x, y, z+dz)){
+      return false;
+    }
+    return true;
+  }
 
   static double calculateDirectionalVec(
     int x,

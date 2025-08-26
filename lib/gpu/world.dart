@@ -194,22 +194,22 @@ class WorldRender extends CustomPainter {
                     continue;
                   }
                   //check visible face
-                  final (dx,dy,dz)=chunk.visibleFaces(x, y, z, cameraPosition);
-                  if(dx==0 && dy==0 && dz==0){
+                  // final (dx,dy,dz)=chunk.visibleFaces(x, y, z, cameraPosition);
+                  // if(dx==0 && dy==0 && dz==0){
+                  //   continue;
+                  // }
+                  // final currentIndices=faceBufferViews[dx+1][dy+1][dz+1];
+                  // pass.bindIndexBuffer(currentIndices.bufferView, gpu.IndexType.int16, currentIndices.length);
+
+                  if(!chunk.isBlockVisible(x, y, z, cameraPosition)){
                     continue;
                   }
-                  final currentIndices=faceBufferViews[dx+1][dy+1][dz+1];
-                  pass.bindIndexBuffer(currentIndices.bufferView, gpu.IndexType.int16, currentIndices.length);
                   //draw
                   if(block.type==BlockType.grass){
                     // mergedVertices.addAll(getBlockVertices(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble()));
                     // count++;
                     final trans=translation(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble());
-                    final t = transient.emplace(
-                      float32Mat(
-                        trans,
-                      ),
-                    );
+                    final t = transient.emplace(float32Mat(trans,),);
                     pass.bindUniform(_translationSlot, t);
                     pass.draw();
                   }
