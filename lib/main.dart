@@ -25,7 +25,7 @@ void main() async{
 Widget fpsMonitor(){
   return StatsFl(
       isEnabled: true, //Toggle on/off
-      width: 100, //Set size
+      width: 150, //Set size
       height: 20, //
       // maxFps: 190, // Support custom FPS target (default is 60)
       showText: true, // Hide text label
