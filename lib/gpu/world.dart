@@ -22,7 +22,9 @@ class WorldRender extends CustomPainter {
 
   //resource
   late gpu.RenderPipeline _pipeline;
-  late gpu.Texture _sampledTexture;
+  late gpu.Texture _grassTexture;
+  late gpu.Texture _logTexture;
+  late gpu.Texture _leafTexture;
   late gpu.HostBuffer _hostBuffer;
   Matrix4? _perspectiveMatrix;
   Size? _lastSize;
@@ -50,12 +52,24 @@ class WorldRender extends CustomPainter {
     _texSlot = _pipeline.fragmentShader.getUniformSlot('tex');
     _translationSlot = _pipeline.vertexShader.getUniformSlot('Translation');
     //texture
-    final mainImg=imageAssets.grass;
-    _sampledTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible, mainImg.width, mainImg.height,
+    final grassImg=imageAssets.grass;
+    _grassTexture = gpu.gpuContext.createTexture(
+        gpu.StorageMode.hostVisible, grassImg.width, grassImg.height,
         enableShaderReadUsage: true
     );
-    _sampledTexture.overwrite(mainImg.data);
+    _grassTexture.overwrite(grassImg.data);
+    final logImg=imageAssets.log;
+    _logTexture = gpu.gpuContext.createTexture(
+        gpu.StorageMode.hostVisible, logImg.width, logImg.height,
+        enableShaderReadUsage: true
+    );
+    _logTexture.overwrite(logImg.data);
+    final leafImg=imageAssets.leaf;
+    _leafTexture = gpu.gpuContext.createTexture(
+        gpu.StorageMode.hostVisible, leafImg.width, leafImg.height,
+        enableShaderReadUsage: true
+    );
+    _leafTexture.overwrite(leafImg.data);
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     vertices = _hostBuffer.emplace(blockVerticesByte);
@@ -83,6 +97,15 @@ class WorldRender extends CustomPainter {
     );
 
     return frustumContainsSphere(viewProj, chunkCenter, chunkRadius);
+  }
+  void configRenderPass(gpu.RenderPass pass){
+    pass.bindPipeline(_pipeline);
+    pass.setDepthWriteEnable(true);
+    pass.setDepthCompareOperation(gpu.CompareFunction.less);
+    pass.bindVertexBuffer(vertices, 36);
+    //cull
+    pass.setCullMode(gpu.CullMode.backFace);
+    setColorBlend(pass);
   }
 
   @override
@@ -130,21 +153,9 @@ class WorldRender extends CustomPainter {
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
     //pass
     final pass = commandBuffer.createRenderPass(renderTarget);
-    pass.bindPipeline(_pipeline);
-    pass.setDepthWriteEnable(true);
-    pass.setDepthCompareOperation(gpu.CompareFunction.less);
+    configRenderPass(pass);
 
 
-
-    pass.bindVertexBuffer(vertices, 36);
-    // final indices = transients.emplace(cubeIndices);
-
-    // pass.bindIndexBuffer(indices, gpu.IndexType.int16, 36);
-
-    //cull
-    pass.setCullMode(gpu.CullMode.backFace);
-
-    pass.bindTexture(_texSlot, _sampledTexture);
 
     //uniform
 
@@ -157,11 +168,7 @@ class WorldRender extends CustomPainter {
     final transient = gpu.gpuContext.createHostBuffer();
     final view = makeViewMatrix(cameraPosition, focusDirection+cameraPosition, upDirection);
     final pvs=persp*view;
-    final mvp = transient.emplace(
-      float32Mat(
-        pvs,
-      ),
-    );
+    final mvp = transient.emplace(float32Mat(pvs,),);
     pass.bindUniform(_frameInfoSlot, mvp);
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
@@ -184,12 +191,14 @@ class WorldRender extends CustomPainter {
           }
           final chunkData=chunk.chunkData;
 
+          gpu.Texture? lastTexture;
           if(chunkData!=null){
             final (chunkDx,chunkDz)=chunkPosition.toWorldIndex();
             for(int x=0;x<chunkSize;x++){
               for(int z=0;z<chunkSize;z++){
+                final column=chunkData.dataXzy[x][z];
                 for(int y=0;y<maxHeight;y++){
-                  final block=chunkData.data[x][y][z];
+                  final block=column[y];
                   if(block.type==BlockType.none){
                     continue;
                   }
@@ -204,12 +213,30 @@ class WorldRender extends CustomPainter {
                   if(!chunk.isBlockVisible(x, y, z, cameraPosition)){
                     continue;
                   }
+                  final trans=translation(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble());
+                  final t = transient.emplace(float32Mat(trans,),);
                   //draw
                   if(block.type==BlockType.grass){
                     // mergedVertices.addAll(getBlockVertices(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble()));
                     // count++;
-                    final trans=translation(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble());
-                    final t = transient.emplace(float32Mat(trans,),);
+                    if(!identical(lastTexture, _grassTexture)){
+                      pass.bindTexture(_texSlot, _grassTexture);
+                      lastTexture=_grassTexture;
+                    }
+                    pass.bindUniform(_translationSlot, t);
+                    pass.draw();
+                  }else if(block.type==BlockType.log){
+                    if(!identical(lastTexture, _logTexture)){
+                      pass.bindTexture(_texSlot, _logTexture);
+                      lastTexture=_logTexture;
+                    }
+                    pass.bindUniform(_translationSlot, t);
+                    pass.draw();
+                  }else if(block.type==BlockType.leaf){
+                    if(!identical(lastTexture, _leafTexture)){
+                      pass.bindTexture(_texSlot, _leafTexture);
+                      lastTexture=_leafTexture;
+                    }
                     pass.bindUniform(_translationSlot, t);
                     pass.draw();
                   }

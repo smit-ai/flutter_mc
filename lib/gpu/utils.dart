@@ -193,9 +193,13 @@ class ImageData{
 class ImageAssets{
   late ImageData mainImage;
   late ImageData grass;
+  late ImageData log;
+  late ImageData leaf;
   Future load()async{
     mainImage=await ImageData.fromAsset('assets/main.png');
     grass=await ImageData.fromAsset('assets/grass.png');
+    log=await ImageData.fromAsset('assets/log.png');
+    leaf=await ImageData.fromAsset('assets/leaf.png');
   }
 }
 final imageAssets=ImageAssets();

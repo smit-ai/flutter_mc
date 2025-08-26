@@ -10,7 +10,7 @@ final strength = 9;
 final primaryStrength = strength * 2;
 final primaryChunkScale = 2;
 final levelHeight = ((primaryStrength + strength) / 2).toInt();
-final maxHeight = primaryStrength + strength;
+final maxHeight = primaryStrength + strength+5;
 final temperature = 2;
 
 class ChunkPosition {
@@ -115,7 +115,7 @@ double _distance(int x1, int y1, int x2, int y2) {
 
 const double invalid = double.nan;
 
-enum BlockType { grass, log, leave, none }
+enum BlockType { grass, log, leaf, none }
 
 final random = Random();
 
@@ -204,6 +204,7 @@ class Chunk {
     return (dcx, dcz, x, z);
   }
 
+  /// whether the block is opaque
   bool _isOpaque(int x, int y, int z) {
     if (y < 0 || y >= maxHeight) {
       return false;
@@ -215,16 +216,17 @@ class Chunk {
         position.x + dcx,
         position.z + dcz,
       );
-      if (chunkManager.isExists(chunkNewPosition)) {
-        final chunkDataNew = chunkManager.chunks[chunkNewPosition]!.chunkData;
+      final chunkNew=chunkManager.chunks[chunkNewPosition];
+      if (chunkNew!=null) {
+        final chunkDataNew = chunkNew.chunkData;
         if (chunkDataNew == null) {
           return true;
         }
-        return isOpaque(chunkDataNew.data[xNew][y][zNew].type);
+        return isOpaque(chunkDataNew.dataXzy[xNew][zNew][y].type);
       }
       return true;
     } else {
-      return isOpaque(data.data[x][y][z].type);
+      return isOpaque(data.dataXzy[x][z][y].type);
     }
   }
 
@@ -318,7 +320,7 @@ class Chunk {
     ChunkData chunkData = ChunkData();
     for (int x = 0; x < chunkSize; x += 2) {
       for (int z = 0; z < chunkSize; z += 2) {
-        chunkData.data[x][levelHeight][z].type = BlockType.grass;
+        chunkData.dataXzy[x][z][levelHeight].type = BlockType.grass;
       }
     }
     return chunkData;
@@ -360,7 +362,21 @@ class Chunk {
         int height = (primaryHeightDelta + heightDelta+levelHeight).toInt();
         for (var y = 0; y < height; y++) {
           if (0 <= y && y < maxHeight) {
-            chunkData.data[x][y][z].type = BlockType.grass;
+            chunkData.dataXzy[x][z][y].type = BlockType.grass;
+          }
+        }
+        if(random.nextDouble()<0.02){
+          //gen tree
+          final treeUp=height+3;
+          for(var y=height;y<min(maxHeight,treeUp);y++){
+            chunkData.dataXzy[x][z][y].type=BlockType.log;
+          }
+          for(int dx=-1;dx<=1;dx++){
+            for(int dz=-1;dz<=1;dz++){
+              for(int dy=0;dy<=2;dy++){
+                chunkData.trySet(x+dx, treeUp+dy, z+dz, BlockType.leaf);
+              }
+            }
           }
         }
       }
@@ -371,16 +387,20 @@ class Chunk {
 }
 
 class ChunkData {
-  List<List<List<BlockData>>> data = List.generate(
+  List<List<List<BlockData>>> dataXzy = List.generate(
     chunkSize,
-
     (i) => List.generate(
-      maxHeight,
-      (j) => List.generate(chunkSize, (k) => BlockData(), growable: false),
+      chunkSize,
+      (j) => List.generate(maxHeight, (k) => BlockData(), growable: false),
       growable: false,
     ),
     growable: false,
   );
+  void trySet(int x,int y,int z,BlockType type){
+    if(0<=x&&x<chunkSize&&0<=y&&y<maxHeight&&0<=z&&z<chunkSize){
+      dataXzy[x][z][y].type=type;
+    }
+  }
 }
 
 class BlockData {
