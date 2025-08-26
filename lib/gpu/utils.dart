@@ -106,15 +106,15 @@ final List<double> blockVertices = [
   radius, -radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 1.0,
   radius,  radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 0.0,
 
-  // 顶部（草纹理）
-  -radius,  radius, -radius,  0.0,  1.0,  0.0,  topUVStart, 0.0,
-  radius,  radius, -radius,  0.0,  1.0,  0.0,  topUVEnd,   0.0,
+  // 顶部（草纹理）+y
+  radius,  radius,  -radius,  0.0,  1.0,  0.0,  topUVEnd, 0.0,
   radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVEnd,   1.0,
+  -radius,  radius,  -radius,  0.0,  1.0,  0.0,  topUVStart,   0.0,
   radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVEnd,   1.0,
   -radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVStart, 1.0,
   -radius,  radius, -radius,  0.0,  1.0,  0.0,  topUVStart, 0.0,
 
-  // 底部（泥土纹理）
+  // 底部（泥土纹理）-y
   -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
   -radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVStart, 1.0,
   radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVEnd,   1.0,
@@ -122,6 +122,14 @@ final List<double> blockVertices = [
   radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVEnd,   0.0,
   -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
 ];
+final List<int> oneFaceIndex=[0,1,2,3,4,5];
+final List<int> emptyFaceIndex=[];
+List<int> faceWithOffset(int offset){
+  return oneFaceIndex.map((e) => e+offset*6).toList();
+}
+final zDirection=[faceWithOffset(1),emptyFaceIndex,faceWithOffset(0)];
+final xDirection=[faceWithOffset(2),emptyFaceIndex,faceWithOffset(3)];
+final yDirection=[faceWithOffset(5),emptyFaceIndex,faceWithOffset(4)];
 final entries=blockVertices.length/8;
 List<double> getBlockVertices(double dx,double dy,double dz){
 
@@ -139,6 +147,11 @@ final scaleMatrix=Matrix4.diagonal3(Vector3(scale,scale,scale));
 final upDirection = Vector3(0, 1, 0);
 Matrix4 translation(double dx,double dy,double dz){
   return Matrix4.identity()..setEntry(0,3,dx)..setEntry(1,3,dy)..setEntry(2,3,dz);
+}
+class BufferWidthLength{
+  gpu.BufferView bufferView;
+  int length;
+  BufferWidthLength(this.bufferView, this.length);
 }
 
 class ImageProcessor {

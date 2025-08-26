@@ -31,7 +31,7 @@ Widget fpsMonitor(){
       showText: true, // Hide text label
       sampleTime: .5, //Interval between fps calculations, in seconds.
       totalTime: 5, //Total length of timeline, in seconds.
-      align: Alignment.topRight, //Alignment of statsbox
+      align: Alignment.bottomRight, //Alignment of statsbox
       child: MyApp());
 }
 

@@ -52,7 +52,6 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
       if(downState)onDown();
     });
     ticker.start();
-
   }
   @override
   void dispose() {
@@ -124,15 +123,28 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
   void markDirty(){
     needBuild=true;
   }
+  WorldRender? render;
 
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
-    final ratio=mediaQueryData.devicePixelRatio;
-    final painter=WorldRender(cameraPosition, horizonRotate, verticalRotate,markDirty,mediaQueryData,renderRatio);
+    if(render==null){
+      render ??= WorldRender(
+          cameraPosition,
+          horizonRotate,
+          verticalRotate,
+          markDirty,
+          mediaQueryData,
+          renderRatio,);
+    }else{
+      render!.cameraPosition=cameraPosition;
+      render!.horizonRotate=horizonRotate;
+      render!.verticalRotate=verticalRotate;
+    }
+
     final game =CustomPaint(
       size: mediaQueryData.size,
-      painter: painter,
+      painter: render,
     );
 
 
