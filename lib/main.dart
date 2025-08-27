@@ -28,7 +28,7 @@ Widget fpsMonitor(){
       isEnabled: true, //Toggle on/off
       width: 150, //Set size
       height: 20, //
-      // maxFps: 190, // Support custom FPS target (default is 60)
+      maxFps: 114514, // Support custom FPS target (default is 60)
       showText: true, // Hide text label
       sampleTime: .5, //Interval between fps calculations, in seconds.
       totalTime: 5, //Total length of timeline, in seconds.

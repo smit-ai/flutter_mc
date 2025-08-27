@@ -27,6 +27,7 @@ class WorldRender extends CustomPainter {
   late gpu.Texture _grassTexture;
   late gpu.Texture _logTexture;
   late gpu.Texture _leafTexture;
+  late gpu.Texture _waterTexture;
   final samplerOptions=gpu.SamplerOptions(
       mipFilter: gpu.MipFilter.linear,
   );
@@ -77,6 +78,12 @@ class WorldRender extends CustomPainter {
         enableShaderReadUsage: true
     );
     _leafTexture.overwrite(leafImg.data);
+    final waterImg=imageAssets.water;
+    _waterTexture = gpu.gpuContext.createTexture(
+        gpu.StorageMode.hostVisible, waterImg.width, waterImg.height,
+        enableShaderReadUsage: true
+    );
+    _waterTexture.overwrite(waterImg.data);
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     _transient = gpu.gpuContext.createHostBuffer();
@@ -107,6 +114,7 @@ class WorldRender extends CustomPainter {
     final log=<double>[];
     final leaf=<double>[];
     final grass=<double>[];
+    final water=<double>[];
     for(int x=0;x<chunkSize;x++){
       for(int z=0;z<chunkSize;z++){
         for(int y=0;y<maxHeight;y++){
@@ -123,8 +131,10 @@ class WorldRender extends CustomPainter {
             log.addAll(faces);
           }else if(blockType==BlockType.leaf){
             leaf.addAll(faces);
-          }else{
+          }else if(blockType==BlockType.grass){
             grass.addAll(faces);
+          }else if(blockType==BlockType.water){
+            water.addAll(faces);
           }
         }
       }
@@ -133,6 +143,7 @@ class WorldRender extends CustomPainter {
       grass: BufferWithLength((_hostBuffer.emplace(float32(grass))),(grass.length/itemsPerVertex).toInt()),
       log: BufferWithLength((_hostBuffer.emplace(float32(log))),(log.length/itemsPerVertex).toInt()),
       leaf: BufferWithLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/itemsPerVertex).toInt()),
+      water: BufferWithLength((_hostBuffer.emplace(float32(water))),(water.length/itemsPerVertex).toInt()),
     );
     return res;
   }
@@ -205,7 +216,7 @@ class WorldRender extends CustomPainter {
   void _paint(Size size) {
     final width = (size.width*dpr).toInt();
     final height = (size.height*dpr).toInt();
-    // 仅在尺寸变化时更新透视矩阵
+    // 仅在尺寸变化时更新透视矩阵,target
     if (_perspectiveMatrix == null || _renderTarget==null || size != _lastSize) {
       _perspectiveMatrix = makePerspectiveMatrix(
         60 * (3.141592653589793 / 180.0),
@@ -242,6 +253,8 @@ class WorldRender extends CustomPainter {
     final int z=((cameraPosition.z+radius)/chunkSize).floor();
     //leaves
     List<BufferWithLength> leaves=[];
+    //water
+    List<BufferWithLength> water=[];
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
       for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){
         final chunkPosition=ChunkPosition(x+chunkDistanceX, z+chunkDistanceZ);
@@ -263,6 +276,8 @@ class WorldRender extends CustomPainter {
             pass.draw();
             //leaf
             leaves.add(buffer.leaf);
+            //water
+            water.add(buffer.water);
           }
         }else{
           //request
@@ -270,12 +285,21 @@ class WorldRender extends CustomPainter {
         }
       }
     }
+    pass.setCullMode(gpu.CullMode.none);
+    //draw water
+    pass.bindTexture(_texSlot, _waterTexture,sampler: samplerOptions);
+    for(final water in water){
+      pass.bindVertexBuffer(water.bufferView, water.length);
+      pass.draw();
+    }
+    pass.setCullMode(gpu.CullMode.backFace);
     //draw leaves
     pass.bindTexture(_texSlot, _leafTexture,sampler: samplerOptions);
     for(final leaf in leaves){
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);
       pass.draw();
     }
+
     commandBuffer.submit(completionCallback: (state){
       _transient.reset();
       final old = image;

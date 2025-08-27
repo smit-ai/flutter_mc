@@ -10,6 +10,7 @@ final strength = 10;
 final primaryStrength = strength * 2;
 final primaryChunkScale = 2;
 final levelHeight = primaryStrength + strength ;
+final waterLevel=(levelHeight*2/3).toInt();
 final maxHeight = (primaryStrength + strength)*2+5;
 final temperature = 2.2;
 
@@ -150,7 +151,7 @@ double _distance(int x1, int y1, int x2, int y2) {
 
 const double invalid = double.nan;
 
-enum BlockType { grass, log, leaf, air }
+enum BlockType { grass, log, leaf, air,water }
 
 final random = Random();
 
@@ -183,10 +184,16 @@ int sign(double v) {
 
 /// 检查是否为不透明
 bool isOpaque(BlockType type) {
-  if(type==BlockType.leaf||type==BlockType.air){
+  if(type==BlockType.leaf||type==BlockType.air||type==BlockType.water){
     return false;
   }
   return true;
+}
+bool isOpaqueCustom(BlockType type,BlockType viewAsOpaque) {
+  if(type==viewAsOpaque){
+    return true;
+  }
+  return isOpaque(type);
 }
 /// 检查是否有点不透明
 bool isLittleOpaque(BlockType type) {
@@ -194,6 +201,16 @@ bool isLittleOpaque(BlockType type) {
     return false;
   }
   return true;
+}
+/// 检查是否为半透明
+bool isTranslucent(BlockType type) {
+  if(type==BlockType.water){
+    return true;
+  }
+  if(type==BlockType.leaf){
+    return true;
+  }
+  return false;
 }
 
 class Chunk {
@@ -240,10 +257,13 @@ class Chunk {
   }
 
   /// whether the block is opaque
-  bool _isOpaque(int x, int y, int z,
-      {bool Function(BlockType type) translucentFunc =isOpaque}) {
+  bool _isOpaque(int x, int y, int z,{BlockType? viewAsOpaque}) {
     if (y < 0 || y >= maxHeight) {
       return false;
+    }
+    var translucentFunc=isOpaque;
+    if(viewAsOpaque!=null){
+      translucentFunc=(type)=>isOpaqueCustom(type, viewAsOpaque);
     }
     final data = chunkData!;
     if (!isValidXZ(x, y, z)) {
@@ -269,11 +289,10 @@ class Chunk {
   ///with translation
   List<double> allVisibleFaces(int x,int y,int z){
     final blockType=chunkData!.dataXzy[x][z][y].type;
-    final opaqueFunc=blockType==BlockType.leaf?isLittleOpaque:isOpaque;
     final res=<double>[];
     for(int i=0;i<6;i++){
       final (dx,dy,dz) = around[i];
-      if(!_isOpaque(x+dx, y+dy, z+dz,translucentFunc: opaqueFunc)){
+      if(!_isOpaque(x+dx, y+dy, z+dz,viewAsOpaque: isTranslucent(blockType)?blockType:null)){
         final face=faceWithTranslation(blockVerticesFaces[i], position.x*chunkSize+x, y, position.z*chunkSize+z);
         res.addAll(face);
       }
@@ -416,11 +435,15 @@ class Chunk {
             chunkData.dataXzy[x][z][y].type = BlockType.grass;
           }
         }
+        //gen water
+        for(int y=height;y<waterLevel;y++){
+          chunkData.dataXzy[x][z][y].type=BlockType.water;
+        }
         final treeRadius=2;
         final treeRadius2=1;
         final isTotalInChunk=treeRadius<=x&&x<chunkSize-treeRadius
             &&treeRadius<=z&&z<chunkSize-treeRadius;
-        if(isTotalInChunk && random.nextDouble()<0.01){
+        if(isTotalInChunk && height>=waterLevel && random.nextDouble()<0.01){
           //gen tree
           final treeHeight=random.nextInt(3)+2;
           final treeUp=height+treeHeight;

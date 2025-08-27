@@ -229,11 +229,13 @@ class ImageAssets{
   late ImageData grass;
   late ImageData log;
   late ImageData leaf;
+  late ImageData water;
   Future load()async{
     mainImage=await ImageData.fromAsset('assets/main.png');
     grass=await ImageData.fromAsset('assets/grass.png');
     log=await ImageData.fromAsset('assets/log.png');
     leaf=await ImageData.fromAsset('assets/leaf.png');
+    water=await ImageData.fromAsset('assets/water.png');
   }
 }
 final imageAssets=ImageAssets();
@@ -311,7 +313,8 @@ class ChunkBufferView{
   BufferWithLength grass;
   BufferWithLength log;
   BufferWithLength leaf;
-  ChunkBufferView({required this.grass, required this.log, required this.leaf});
+  BufferWithLength water;
+  ChunkBufferView({required this.grass, required this.log, required this.leaf,required this.water});
 }
 
 ///issue: Unable to allocate a device buffer: ErrorInitializationFailed
