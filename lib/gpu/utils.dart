@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/services.dart';
+import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'dart:typed_data';
@@ -20,6 +21,9 @@ ByteData uint32(List<int> values) {
 
 ByteData float32Mat(Matrix4 matrix) {
   return Float32List.fromList(matrix.storage).buffer.asByteData();
+}
+ByteData float32Vec3(Vector3 vec3) {
+  return Float32List.fromList(vec3.storage).buffer.asByteData();
 }
 
 void setColorBlend(gpu.RenderPass pass){
@@ -323,4 +327,32 @@ gpu.BufferView createDeviceBuffer(ByteData byteData){
   deviceBuffer.overwrite(byteData);
   deviceBuffer.flush();
   return gpu.BufferView(deviceBuffer, offsetInBytes: 0, lengthInBytes: byteData.lengthInBytes);
+}
+
+
+class PhongMaterialBuffered{
+  final gpu.BufferView data;
+  PhongMaterialBuffered(this.data);
+  static PhongMaterialBuffered from(PhongMaterial material,gpu.HostBuffer hostBuffer){
+    final list=<double>[
+      ...material.ambient.storage,
+      ...material.diffuse.storage,
+      ...material.specular.storage,
+      material.shininess,
+    ];
+    return PhongMaterialBuffered(hostBuffer.emplace(float32(list)));
+  }
+}
+class LightMaterialBuffered{
+  final gpu.BufferView data;
+  LightMaterialBuffered(this.data);
+  static LightMaterialBuffered from(LightMaterial material,gpu.HostBuffer hostBuffer){
+    final list=<double>[
+      ...material.direction.storage,
+      ...material.ambient.storage,
+      ...material.diffuse.storage,
+      ...material.specular.storage,
+    ];
+    return LightMaterialBuffered(hostBuffer.emplace(float32(list)));
+  }
 }
