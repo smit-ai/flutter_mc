@@ -69,6 +69,7 @@ const double sideUVEnd = 2/3;
 const double bottomUVStart = 2/3;
 const double bottomUVEnd = 1.0;
 
+const int itemsPerVertex=8;
 
 const double radius=0.5;
 // 草方块顶点数据列表
@@ -155,12 +156,12 @@ final yDirection=[faceWithOffset(5),emptyFaceIndex,faceWithOffset(4)];
 final entries=blockVertices.length/8;
 
 List<double> faceWithTranslation(List<double> face,int dx,int dy,int dz){
-  final entries=face.length/8;
+  final entries=face.length/itemsPerVertex;
   final l=List<double>.from(face,growable: false);
   for(int row=0;row<entries;row++){
-    l[row*8+0]+=dx;
-    l[row*8+1]+=dy;
-    l[row*8+2]+=dz;
+    l[row*itemsPerVertex+0]+=dx;
+    l[row*itemsPerVertex+1]+=dy;
+    l[row*itemsPerVertex+2]+=dz;
   }
   return l;
 }
@@ -168,9 +169,9 @@ List<double> getBlockVertices(double dx,double dy,double dz){
 
   final vericesClone=List<double>.from(blockVertices);
   for(int i=0;i<entries;i++){
-    vericesClone[i*8+0]+=dx;
-    vericesClone[i*8+1]+=dy;
-    vericesClone[i*8+2]+=dz;
+    vericesClone[i*itemsPerVertex+0]+=dx;
+    vericesClone[i*itemsPerVertex+1]+=dy;
+    vericesClone[i*itemsPerVertex+2]+=dz;
   }
   return vericesClone;
 }

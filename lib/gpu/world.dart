@@ -80,6 +80,8 @@ class WorldRender extends CustomPainter {
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     _transient = gpu.gpuContext.createHostBuffer();
+    //render target
+
   }
   ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
     //if it's cached, return it
@@ -128,13 +130,13 @@ class WorldRender extends CustomPainter {
       }
     }
     final res=ChunkBufferView(
-      grass: BufferWithLength((_hostBuffer.emplace(float32(grass))),(grass.length/8).toInt()),
-      log: BufferWithLength((_hostBuffer.emplace(float32(log))),(log.length/8).toInt()),
-      leaf: BufferWithLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/8).toInt()),
+      grass: BufferWithLength((_hostBuffer.emplace(float32(grass))),(grass.length/itemsPerVertex).toInt()),
+      log: BufferWithLength((_hostBuffer.emplace(float32(log))),(log.length/itemsPerVertex).toInt()),
+      leaf: BufferWithLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/itemsPerVertex).toInt()),
     );
     return res;
   }
-  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+8; // 区块对角线一半
+  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+itemsPerVertex; // 区块对角线一半
   bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
     final chunkCenter = Vector3(
       (pos.x * chunkSize + chunkSize/2).toDouble(),
@@ -154,6 +156,8 @@ class WorldRender extends CustomPainter {
     setColorBlend(pass);
   }
   ui.Image? image;
+  gpu.RenderTarget? _renderTarget;
+  late gpu.Texture _renderTexture;
   @override
   void paint(Canvas canvas, Size size){
     try{
@@ -168,22 +172,9 @@ class WorldRender extends CustomPainter {
       canvas.drawImage(image!, Offset.zero, Paint());
     }
   }
-
-  void _paint(Size size) {
-    final width = (size.width*dpr).toInt();
-    final height = (size.height*dpr).toInt();
-    // 仅在尺寸变化时更新透视矩阵
-    if (_perspectiveMatrix == null || size != _lastSize) {
-      _perspectiveMatrix = makePerspectiveMatrix(
-        60 * (3.141592653589793 / 180.0),
-        size.aspectRatio,
-        0.01,
-        1000
-      );
-      _lastSize = size;
-    }
+  void buildRenderTarget(int width,int height){
     //texture
-    final renderTexture = gpu.gpuContext.createTexture(
+    _renderTexture = gpu.gpuContext.createTexture(
       gpu.StorageMode.devicePrivate,
       width,
       height,
@@ -202,17 +193,34 @@ class WorldRender extends CustomPainter {
       coordinateSystem: gpu.TextureCoordinateSystem.renderToTexture,
     );
     //target
-    final renderTarget = gpu.RenderTarget.singleColor(
-      gpu.ColorAttachment(texture: renderTexture),
+    _renderTarget = gpu.RenderTarget.singleColor(
+      gpu.ColorAttachment(texture: _renderTexture),
       depthStencilAttachment: gpu.DepthStencilAttachment(
         texture: depthTexture,
         depthClearValue: 1,
       ),
     );
+  }
+
+  void _paint(Size size) {
+    final width = (size.width*dpr).toInt();
+    final height = (size.height*dpr).toInt();
+    // 仅在尺寸变化时更新透视矩阵
+    if (_perspectiveMatrix == null || _renderTarget==null || size != _lastSize) {
+      _perspectiveMatrix = makePerspectiveMatrix(
+        60 * (3.141592653589793 / 180.0),
+        size.aspectRatio,
+        0.01,
+        1000
+      );
+      _lastSize = size;
+      buildRenderTarget(width, height);
+    }
+
     //command buffer
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
     //pass
-    final pass = commandBuffer.createRenderPass(renderTarget);
+    final pass = commandBuffer.createRenderPass(_renderTarget!);
     configRenderPass(pass);
 
 
@@ -270,7 +278,9 @@ class WorldRender extends CustomPainter {
     }
     commandBuffer.submit(completionCallback: (state){
       _transient.reset();
-      image = renderTexture.asImage();
+      final old = image;
+      image = _renderTexture.asImage();
+      old?.dispose();
     });
   }
 
