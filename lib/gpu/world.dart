@@ -27,12 +27,17 @@ class WorldRender extends CustomPainter {
   late gpu.Texture _grassTexture;
   late gpu.Texture _logTexture;
   late gpu.Texture _leafTexture;
+  //buffer
   late gpu.HostBuffer _hostBuffer;
+  late gpu.HostBuffer _transient;
+
   Matrix4? _perspectiveMatrix;
+
   Size? _lastSize;
   late gpu.UniformSlot _frameInfoSlot;
   late gpu.UniformSlot _texSlot;
   late double dpr;
+
   Map<ChunkPosition,ChunkBufferView> chunkFaces={};
 
   final ValueNotifier<int> notifier;
@@ -71,6 +76,7 @@ class WorldRender extends CustomPainter {
     _leafTexture.overwrite(leafImg.data);
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
+    _transient = gpu.gpuContext.createHostBuffer();
   }
   ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
     //if it's cached, return it
@@ -215,10 +221,10 @@ class WorldRender extends CustomPainter {
       sin(verticalRotate),
       -sin(horizonRotate) * cos(verticalRotate),
     );
-    final transient = gpu.gpuContext.createHostBuffer();
+
     final view = makeViewMatrix(cameraPosition, focusDirection+cameraPosition, upDirection);
     final pvs=persp*view;
-    final mvp = transient.emplace(float32Mat(pvs,),);
+    final mvp = _transient.emplace(float32Mat(pvs,),);
     pass.bindUniform(_frameInfoSlot, mvp);
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
@@ -259,10 +265,10 @@ class WorldRender extends CustomPainter {
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);
       pass.draw();
     }
-
-
-    commandBuffer.submit();
-    image = renderTexture.asImage();
+    commandBuffer.submit(completionCallback: (state){
+      _transient.reset();
+      image = renderTexture.asImage();
+    });
   }
 
 
