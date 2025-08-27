@@ -6,6 +6,7 @@ import 'package:flutter_gpu_demo/config.dart';
 import 'package:flutter_gpu_demo/gpu/utils.dart';
 import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'shaders.dart';
 import 'dart:ui' as ui;
@@ -108,10 +109,10 @@ class WorldRender extends CustomPainter {
     //material
     _afternoon=LightMaterialBuffered.from(LightMaterial.afternoon,_hostBuffer);
     _sunset=LightMaterialBuffered.from(LightMaterial.sunset,_hostBuffer);
-    _grassMaterial=PhongMaterialBuffered.from(PhongMaterial.grass,_hostBuffer);
-    _logMaterial=PhongMaterialBuffered.from(PhongMaterial.log,_hostBuffer);
-    _leafMaterial=PhongMaterialBuffered.from(PhongMaterial.leaf,_hostBuffer);
-    _waterMaterial=PhongMaterialBuffered.from(PhongMaterial.water,_hostBuffer);
+    _grassMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.grass,_hostBuffer);
+    _logMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.log,_hostBuffer);
+    _leafMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.leaf,_hostBuffer);
+    _waterMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.water,_hostBuffer);
   }
   void setLightingMaterial(gpu.RenderPass pass,LightMaterialBuffered material){
     pass.bindUniform(_lightSlot, material.data);
@@ -234,7 +235,10 @@ class WorldRender extends CustomPainter {
     );
     //target
     _renderTarget = gpu.RenderTarget.singleColor(
-      gpu.ColorAttachment(texture: _renderTexture),
+      gpu.ColorAttachment(
+          texture: _renderTexture,
+          clearValue: vm.Vector4(0,0,0,0.5)
+      ),
       depthStencilAttachment: gpu.DepthStencilAttachment(
         texture: depthTexture,
         depthClearValue: 1,
@@ -278,8 +282,10 @@ class WorldRender extends CustomPainter {
     final mvp = _transient.emplace(float32Mat(pvs,),);
     //uniform
     pass.bindUniform(_frameInfoSlot, mvp);
-    // pass.bindUniform(_viewPosSlot, _transient.emplace(float32(cameraPosition.storage)));
-    // setLightingMaterial(pass, _afternoon);
+    final viewPos=_transient.emplace(float32(cameraPosition.storage));
+    pass.bindUniform(_viewPosSlot, viewPos);
+    setLightingMaterial(pass, _afternoon);
+
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
     final int z=((cameraPosition.z+radius)/chunkSize).floor();
@@ -299,12 +305,12 @@ class WorldRender extends CustomPainter {
           final buffer=getChunkFaceBuffer(chunkPosition);
           if(buffer!=null){
             //grass
-            // setMaterial(pass, _grassMaterial);
+            setMaterial(pass, _grassMaterial);
             pass.bindTexture(_texSlot, _grassTexture,sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.grass.bufferView, buffer.grass.length);
             pass.draw();
             //log
-            // setMaterial(pass, _logMaterial);
+            setMaterial(pass, _logMaterial);
             pass.bindTexture(_texSlot, _logTexture,sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.log.bufferView, buffer.log.length);
             pass.draw();
@@ -321,7 +327,7 @@ class WorldRender extends CustomPainter {
     }
     pass.setCullMode(gpu.CullMode.none);
     //draw water
-    // setMaterial(pass, _waterMaterial);
+    setMaterial(pass, _waterMaterial);
     pass.bindTexture(_texSlot, _waterTexture,sampler: samplerOptions);
     for(final water in water){
       pass.bindVertexBuffer(water.bufferView, water.length);
@@ -329,7 +335,7 @@ class WorldRender extends CustomPainter {
     }
     pass.setCullMode(gpu.CullMode.backFace);
     //draw leaves
-    // setMaterial(pass, _leafMaterial);
+    setMaterial(pass, _leafMaterial);
     pass.bindTexture(_texSlot, _leafTexture,sampler: samplerOptions);
     for(final leaf in leaves){
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);

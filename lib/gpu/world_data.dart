@@ -497,35 +497,35 @@ class ChunkData {
     }
   }
 }
-class PhongMaterial{
+class BlinnPhongMaterial{
   final Vector3 ambient;
   final Vector3 diffuse;
   final Vector3 specular;
   final double shininess;
-  PhongMaterial(this.ambient, this.diffuse, this.specular, this.shininess);
-  static final grass=PhongMaterial(
+  BlinnPhongMaterial(this.ambient, this.diffuse, this.specular, this.shininess);
+  static final grass=BlinnPhongMaterial(
     Vector3(0.2, 0.25, 0.2),   // 环境光：微微带绿色
     Vector3(0.3, 0.6, 0.3),    // 漫反射：鲜明的草绿色
     Vector3(0.1, 0.1, 0.1),    // 高光：草是哑光材质
-    8.0,                       // 高光散射小，比较模糊
+    32.0,                       // 高光散射小，比较模糊
   );
-  static final log= PhongMaterial(
+  static final log= BlinnPhongMaterial(
     Vector3(0.25, 0.2, 0.15),  // 环境光：偏暗棕色
     Vector3(0.5, 0.35, 0.2),   // 漫反射：木头棕色
     Vector3(0.1, 0.1, 0.1),    // 高光弱
-    16.0,
+    32.0,
   );
-  static final leaf=PhongMaterial(
+  static final leaf=BlinnPhongMaterial(
     Vector3(0.1, 0.2, 0.1),    // 环境光：暗绿色
     Vector3(0.2, 0.5, 0.2),    // 漫反射：中等绿色
     Vector3(0.05, 0.05, 0.05), // 高光极弱
-    8.0,
+    32.0,
   );
-  static final water=PhongMaterial(
+  static final water=BlinnPhongMaterial(
     Vector3(0.0, 0.0, 0.05),   // 环境光：淡蓝色
     Vector3(0.1, 0.2, 0.5),    // 漫反射：水的蓝色
-    Vector3(0.3, 0.3, 0.4),    // 高光：水面有较强镜面反射
-    64.0,                      // 高光锐利
+    Vector3(0.4, 0.4, 0.4),    // 高光：水面有较强镜面反射
+    256.0,                      // 高光锐利
   );
 }
 class LightMaterial{
@@ -536,8 +536,8 @@ class LightMaterial{
   LightMaterial(this.direction, this.ambient, this.diffuse, this.specular);
   static final afternoon = LightMaterial(
     Vector3(-0.3, -1.0, -0.2),   // 光方向：略往下照
-    Vector3(0.3, 0.3, 0.3),      // 环境光：中等灰白
-    Vector3(0.7, 0.7, 0.7),      // 漫反射：明亮白光
+    Vector3(0.7, 0.7, 0.6),      // 环境光：中等灰白
+    Vector3(0.7, 0.7, 0.6),      // 漫反射：明亮白光
     Vector3(1.0, 1.0, 1.0),      // 高光：强白光
   );
   static final sunset = LightMaterial(

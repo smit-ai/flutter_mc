@@ -333,12 +333,12 @@ gpu.BufferView createDeviceBuffer(ByteData byteData){
 class PhongMaterialBuffered{
   final gpu.BufferView data;
   PhongMaterialBuffered(this.data);
-  static PhongMaterialBuffered from(PhongMaterial material,gpu.HostBuffer hostBuffer){
+  static PhongMaterialBuffered from(BlinnPhongMaterial material,gpu.HostBuffer hostBuffer){
     final list=<double>[
-      ...material.ambient.storage,
-      ...material.diffuse.storage,
-      ...material.specular.storage,
-      material.shininess,
+      ...material.ambient.storage,0,
+      ...material.diffuse.storage,0,
+      ...material.specular.storage,0,
+      material.shininess,0,0,0
     ];
     return PhongMaterialBuffered(hostBuffer.emplace(float32(list)));
   }
@@ -348,10 +348,10 @@ class LightMaterialBuffered{
   LightMaterialBuffered(this.data);
   static LightMaterialBuffered from(LightMaterial material,gpu.HostBuffer hostBuffer){
     final list=<double>[
-      ...material.direction.storage,
-      ...material.ambient.storage,
-      ...material.diffuse.storage,
-      ...material.specular.storage,
+      ...material.direction.storage,0,
+      ...material.ambient.storage,0,
+      ...material.diffuse.storage,0,
+      ...material.specular.storage,0,
     ];
     return LightMaterialBuffered(hostBuffer.emplace(float32(list)));
   }
