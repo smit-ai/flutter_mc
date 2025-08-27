@@ -7,10 +7,10 @@ import 'package:vector_math/vector_math_64.dart';
 
 final chunkSize = 16;
 final strength = 10;
-final primaryStrength = strength * 4;
+final primaryStrength = strength * 2;
 final primaryChunkScale = 2;
-final levelHeight = ((primaryStrength + strength) / 2).toInt();
-final maxHeight = primaryStrength + strength+5;
+final levelHeight = primaryStrength + strength ;
+final maxHeight = (primaryStrength + strength)*2+5;
 final temperature = 2.2;
 
 class ChunkPosition {
@@ -394,7 +394,7 @@ class Chunk {
           z + primaryDz,
           primaryDirectionalVec,
           primaryChunkSize,
-        );
+        )*primaryStrength;
         final vec = calculateDirectionalVec(x, z, directionalVec, chunkSize);
         final heightDelta = vec * strength;
         int height = (primaryHeightDelta + heightDelta+levelHeight).toInt();
@@ -412,7 +412,7 @@ class Chunk {
           final treeHeight=random.nextInt(3)+2;
           final treeUp=height+treeHeight;
           for(var y=height;y<min(maxHeight,treeUp);y++){
-            chunkData.dataXzy[x][z][y].type=BlockType.log;
+            chunkData.trySet(x, y, z, BlockType.log);
           }
 
           final treeLeafHeight1=2;
