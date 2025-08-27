@@ -188,6 +188,13 @@ bool isOpaque(BlockType type) {
   }
   return true;
 }
+/// 检查是否有点不透明
+bool isLittleOpaque(BlockType type) {
+  if(type==BlockType.air){
+    return false;
+  }
+  return true;
+}
 
 class Chunk {
   ChunkPosition position;
@@ -233,7 +240,8 @@ class Chunk {
   }
 
   /// whether the block is opaque
-  bool _isOpaque(int x, int y, int z) {
+  bool _isOpaque(int x, int y, int z,
+      {bool Function(BlockType type) translucentFunc =isOpaque}) {
     if (y < 0 || y >= maxHeight) {
       return false;
     }
@@ -250,20 +258,22 @@ class Chunk {
         if (chunkDataNew == null) {
           return true;
         }
-        return isOpaque(chunkDataNew.dataXzy[xNew][zNew][y].type);
+        return translucentFunc(chunkDataNew.dataXzy[xNew][zNew][y].type);
       }else{//the other chunk is not generated
         return false;
       }
     } else {
-      return isOpaque(data.dataXzy[x][z][y].type);
+      return translucentFunc(data.dataXzy[x][z][y].type);
     }
   }
   ///with translation
   List<double> allVisibleFaces(int x,int y,int z){
+    final blockType=chunkData!.dataXzy[x][z][y].type;
+    final opaqueFunc=blockType==BlockType.leaf?isLittleOpaque:isOpaque;
     final res=<double>[];
     for(int i=0;i<6;i++){
       final (dx,dy,dz) = around[i];
-      if(!_isOpaque(x+dx, y+dy, z+dz)){
+      if(!_isOpaque(x+dx, y+dy, z+dz,translucentFunc: opaqueFunc)){
         final face=faceWithTranslation(blockVerticesFaces[i], position.x*chunkSize+x, y, position.z*chunkSize+z);
         res.addAll(face);
       }
@@ -437,6 +447,7 @@ class Chunk {
           chunkData.trySet(x-1, treeUp+treeLeafHeight1+1, z, BlockType.leaf);
           chunkData.trySet(x, treeUp+treeLeafHeight1+1, z+1, BlockType.leaf);
           chunkData.trySet(x, treeUp+treeLeafHeight1+1, z-1, BlockType.leaf);
+          chunkData.trySet(x, treeUp, z, BlockType.log);
         }
       }
     }
