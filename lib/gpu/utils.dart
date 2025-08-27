@@ -73,7 +73,7 @@ const double bottomUVEnd = 1.0;
 const double radius=0.5;
 // 草方块顶点数据列表
 // 每个顶点包含: x, y, z, 法线x, 法线y, 法线z, uvX, uvY
-final List<double> blockVertices = [
+final verticesPosZ=<double>[
   // 前面（侧面纹理）+z
   -radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 1.0,
   -radius,  radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 0.0,
@@ -81,7 +81,8 @@ final List<double> blockVertices = [
   radius,  radius,  radius,  0.0,  0.0,  1.0,  sideUVEnd,   0.0,
   radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVEnd,   1.0,
   -radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 1.0,
-
+];
+final verticesNegZ=<double>[
   // 后面（侧面纹理）-z
   -radius, -radius, -radius,  0.0,  0.0, -1.0,  sideUVStart, 1.0,
   radius, -radius, -radius,  0.0,  0.0, -1.0,  sideUVEnd,   1.0,
@@ -89,7 +90,8 @@ final List<double> blockVertices = [
   radius,  radius, -radius,  0.0,  0.0, -1.0,  sideUVEnd,   0.0,
   -radius,  radius, -radius,  0.0,  0.0, -1.0,  sideUVStart, 0.0,
   -radius, -radius, -radius,  0.0,  0.0, -1.0,  sideUVStart, 1.0,
-
+];
+final verticesNegX=<double>[
   // 左面（侧面纹理）-x
   -radius,  radius,  radius, -1.0,  0.0,  0.0,  sideUVStart, 0.0,
   -radius, -radius,  radius, -1.0,  0.0,  0.0,  sideUVStart, 1.0,
@@ -98,6 +100,8 @@ final List<double> blockVertices = [
   -radius,  radius, -radius, -1.0,  0.0,  0.0,  sideUVEnd,   0.0,
   -radius,  radius,  radius, -1.0,  0.0,  0.0,  sideUVStart, 0.0,
 
+];
+final verticesPosX=<double>[
   // 右面（侧面纹理）+x
   radius,  radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 0.0,
   radius,  radius, -radius,  1.0,  0.0,  0.0,  sideUVEnd,   0.0,
@@ -105,7 +109,8 @@ final List<double> blockVertices = [
   radius, -radius, -radius,  1.0,  0.0,  0.0,  sideUVEnd,   1.0,
   radius, -radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 1.0,
   radius,  radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 0.0,
-
+];
+final verticesPosY=<double>[
   // 顶部（草纹理）+y
   radius,  radius,  -radius,  0.0,  1.0,  0.0,  topUVEnd, 0.0,
   radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVEnd,   1.0,
@@ -113,7 +118,8 @@ final List<double> blockVertices = [
   radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVEnd,   1.0,
   -radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVStart, 1.0,
   -radius,  radius, -radius,  0.0,  1.0,  0.0,  topUVStart, 0.0,
-
+];
+final verticesNegY=<double>[
   // 底部（泥土纹理）-y
   -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
   -radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVStart, 1.0,
@@ -121,6 +127,22 @@ final List<double> blockVertices = [
   radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVEnd,   1.0,
   radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVEnd,   0.0,
   -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
+];
+final blockVerticesFaces=[
+  verticesNegX,
+  verticesPosX,
+  verticesNegY,
+  verticesPosY,
+  verticesNegZ,
+  verticesPosZ,
+];
+final List<double> blockVertices = [
+  ...verticesPosZ,
+  ...verticesNegZ,
+  ...verticesNegX,
+  ...verticesPosX,
+  ...verticesPosY,
+  ...verticesNegY
 ];
 final List<int> oneFaceIndex=[0,1,2,3,4,5];
 final List<int> emptyFaceIndex=[];
@@ -131,6 +153,17 @@ final zDirection=[faceWithOffset(1),emptyFaceIndex,faceWithOffset(0)];
 final xDirection=[faceWithOffset(2),emptyFaceIndex,faceWithOffset(3)];
 final yDirection=[faceWithOffset(5),emptyFaceIndex,faceWithOffset(4)];
 final entries=blockVertices.length/8;
+
+List<double> faceWithTranslation(List<double> face,int dx,int dy,int dz){
+  final entries=face.length/8;
+  final l=List<double>.from(face,growable: false);
+  for(int row=0;row<entries;row++){
+    l[row*8+0]+=dx;
+    l[row*8+1]+=dy;
+    l[row*8+2]+=dz;
+  }
+  return l;
+}
 List<double> getBlockVertices(double dx,double dy,double dz){
 
   final vericesClone=List<double>.from(blockVertices);
@@ -271,4 +304,11 @@ bool frustumContainsSphere(Matrix4 viewProj, Vector3 center, double radius) {
     }
   }
   return true;
+}
+
+class ChunkBufferView{
+  BufferWidthLength grass;
+  BufferWidthLength log;
+  BufferWidthLength leaf;
+  ChunkBufferView({required this.grass, required this.log, required this.leaf});
 }

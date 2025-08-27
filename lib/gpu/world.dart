@@ -8,16 +8,17 @@ import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'shaders.dart';
+import 'dart:ui' as ui;
 
 
 
 class WorldRender extends CustomPainter {
-  VoidCallback onMapGenerated;
+  VoidCallback onTerrainGenerated;
   Vector3 cameraPosition = Vector3(0, 0, 0);
   double horizonRotate = 0.0;
   double verticalRotate = 0.0;
   double renderRatio;
-  int viewDistance= 2;
+  int viewDistance= 5;
   MediaQueryData mediaQueryData;
 
   //resource
@@ -32,12 +33,12 @@ class WorldRender extends CustomPainter {
   late gpu.UniformSlot _texSlot;
   late gpu.UniformSlot _translationSlot;
   late double dpr;
-  late List<List<List<BufferWidthLength>>> faceBufferViews;
   late gpu.BufferView vertices;
+  Map<ChunkPosition,ChunkBufferView> chunkFaces={};
 
   final ValueNotifier<int> notifier;
   WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,
-      this.onMapGenerated, this.mediaQueryData, this.renderRatio,
+      this.onTerrainGenerated, this.mediaQueryData, this.renderRatio,
       this.notifier) :super(repaint: notifier) {
     dpr = mediaQueryData.devicePixelRatio * renderRatio;
     //shader
@@ -73,20 +74,59 @@ class WorldRender extends CustomPainter {
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     vertices = _hostBuffer.emplace(blockVerticesByte);
-    //gen face buffer
-    faceBufferViews = List.generate(3, (x) =>
-        List.generate(3, (y) =>
-            List.generate(
-                3, (z) {
-              List<int> indices = [];
-              indices.addAll(xDirection[x]);
-              indices.addAll(yDirection[y]);
-              indices.addAll(zDirection[z]);
-              return BufferWidthLength(
-                  _hostBuffer.emplace(uint16(indices)), indices.length);
-            }, growable: false),
-            growable: false), growable: false);
+  }
+  ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
+    //if it's cached, return it
+    final res= chunkFaces[position];
+    if(res!=null){
+      return res;
+    }
+    final buffer=_calculateChunkBuffer(chunkManager.chunks[position]!);
+    if(buffer!=null){
+      chunkFaces[position]=buffer;
+    }
+    return buffer;
 
+  }
+  ChunkBufferView? _calculateChunkBuffer(Chunk chunk){
+    if(chunk.chunkData==null){
+      return null;
+    }
+    if(!chunkManager.isChunkWarpAvailable(chunk.position)){
+      return null;
+    }
+    final chunkData=chunk.chunkData!;
+    final log=<double>[];
+    final leaf=<double>[];
+    final grass=<double>[];
+    for(int x=0;x<chunkSize;x++){
+      for(int z=0;z<chunkSize;z++){
+        for(int y=0;y<maxHeight;y++){
+          final block=chunkData.dataXzy[x][z][y];
+          final blockType=block.type;
+          if(blockType==BlockType.none){
+            continue;
+          }
+          final faces=chunk.allVisibleFaces(x, y, z);
+          if(faces.isEmpty){
+            continue;
+          }
+          if(blockType==BlockType.log){
+            log.addAll(faces);
+          }else if(blockType==BlockType.leaf){
+            leaf.addAll(faces);
+          }else{
+            grass.addAll(faces);
+          }
+        }
+      }
+    }
+    final res=ChunkBufferView(
+      grass: BufferWidthLength((_hostBuffer.emplace(float32(grass))),(grass.length/8).toInt()),
+      log: BufferWidthLength((_hostBuffer.emplace(float32(log))),(log.length/8).toInt()),
+      leaf: BufferWidthLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/8).toInt()),
+    );
+    return res;
   }
   final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+8; // 区块对角线一半
   bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
@@ -102,14 +142,28 @@ class WorldRender extends CustomPainter {
     pass.bindPipeline(_pipeline);
     pass.setDepthWriteEnable(true);
     pass.setDepthCompareOperation(gpu.CompareFunction.less);
-    pass.bindVertexBuffer(vertices, 36);
+    
     //cull
     pass.setCullMode(gpu.CullMode.backFace);
     setColorBlend(pass);
   }
-
+  ui.Image? image;
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(Canvas canvas, Size size){
+    try{
+      _paint(size);
+    }catch(e){
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+    if(image!=null){
+      canvas.scale(1/dpr, 1/dpr);
+      canvas.drawImage(image!, Offset.zero, Paint());
+    }
+  }
+
+  void _paint(Size size) {
     final width = (size.width*dpr).toInt();
     final height = (size.height*dpr).toInt();
     // 仅在尺寸变化时更新透视矩阵
@@ -118,7 +172,7 @@ class WorldRender extends CustomPainter {
         60 * (3.141592653589793 / 180.0),
         size.aspectRatio,
         0.01,
-        100
+        1000
       );
       _lastSize = size;
     }
@@ -173,92 +227,42 @@ class WorldRender extends CustomPainter {
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
     final int z=((cameraPosition.z+radius)/chunkSize).floor();
-
-
     // final List<double> mergedVertices = [];
     // int count=0;
 
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
       for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){
         final chunkPosition=ChunkPosition(x+chunkDistanceX, z+chunkDistanceZ);
-        if(chunkManager.isExists(chunkPosition)){
-          final chunk=chunkManager.chunks[chunkPosition]!;
-          if(!(x==chunkPosition.x&&z==chunkPosition.z)){
-            //not current chunk
-            if(!isChunkVisible(chunkPosition, pvs)){
-              continue;//can not see this chunk, skip
-            }
-          }
-          final chunkData=chunk.chunkData;
-
-          gpu.Texture? lastTexture;
-          if(chunkData!=null){
-            final (chunkDx,chunkDz)=chunkPosition.toWorldIndex();
-            for(int x=0;x<chunkSize;x++){
-              for(int z=0;z<chunkSize;z++){
-                final column=chunkData.dataXzy[x][z];
-                for(int y=0;y<maxHeight;y++){
-                  final block=column[y];
-                  if(block.type==BlockType.none){
-                    continue;
-                  }
-                  //check visible face
-                  // final (dx,dy,dz)=chunk.visibleFaces(x, y, z, cameraPosition);
-                  // if(dx==0 && dy==0 && dz==0){
-                  //   continue;
-                  // }
-                  // final currentIndices=faceBufferViews[dx+1][dy+1][dz+1];
-                  // pass.bindIndexBuffer(currentIndices.bufferView, gpu.IndexType.int16, currentIndices.length);
-
-                  if(!chunk.isBlockVisible(x, y, z, cameraPosition)){
-                    continue;
-                  }
-                  final trans=translation(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble());
-                  final t = transient.emplace(float32Mat(trans,),);
-                  //draw
-                  if(block.type==BlockType.grass){
-                    // mergedVertices.addAll(getBlockVertices(x+chunkDx.toDouble(), y.toDouble(), z+chunkDz.toDouble()));
-                    // count++;
-                    if(!identical(lastTexture, _grassTexture)){
-                      lastTexture=_grassTexture;
-                    }
-                  }else if(block.type==BlockType.log){
-                    if(!identical(lastTexture, _logTexture)){
-                      lastTexture=_logTexture;
-                    }
-                  }else if(block.type==BlockType.leaf){
-                    if(!identical(lastTexture, _leafTexture)){
-                      lastTexture=_leafTexture;
-                    }
-                  }
-                  pass.bindTexture(_texSlot, lastTexture!);
-                  pass.bindUniform(_translationSlot, t);
-                  pass.draw();
-                }
-              }
-            }
+        if(!isChunkVisible(chunkPosition, pvs)){
+          continue;
+        }
+        final chunk=chunkManager.chunks[chunkPosition];
+        if(chunk!=null){
+          chunkManager.ensureChunkWarp(chunkPosition,onComplete: onTerrainGenerated);
+          final buffer=getChunkFaceBuffer(chunkPosition);
+          if(buffer!=null){
+            //grass
+            pass.bindTexture(_texSlot, _grassTexture);
+            pass.bindVertexBuffer(buffer.grass.bufferView, buffer.grass.length);
+            pass.draw();
+            //log
+            pass.bindTexture(_texSlot, _logTexture);
+            pass.bindVertexBuffer(buffer.log.bufferView, buffer.log.length);
+            pass.draw();
+            //leaf
+            pass.bindTexture(_texSlot, _leafTexture);
+            pass.bindVertexBuffer(buffer.leaf.bufferView, buffer.leaf.length);
+            pass.draw();
           }
         }else{
           //request
-          chunkManager.generateChunk(chunkPosition,onComplete: onMapGenerated);
+          chunkManager.requestGenerateChunk(chunkPosition,onComplete: onTerrainGenerated);
         }
       }
     }
 
-    // final vertices = _transients.emplace(float32(mergedVertices));
-    // pass.bindVertexBuffer(vertices, count*36);
-    // final mvp = _transients.emplace(
-    //   float32Mat(
-    //     pvs ,
-    //   ),
-    // );
-    // pass.bindUniform(frameInfoSlot, mvp);
-    // pass.draw();
-
     commandBuffer.submit();
-    final image = renderTexture.asImage();
-    canvas.scale(1/dpr, 1/dpr);
-    canvas.drawImage(image, Offset.zero, Paint());
+    image = renderTexture.asImage();
   }
 
 

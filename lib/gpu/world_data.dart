@@ -78,25 +78,60 @@ class ChunkManager {
   }
 
   ChunkManager() {
-    generateChunk(ChunkPosition(0, 0));
+    requestGenerateChunk(ChunkPosition(0, 0));
+  }
+  void ensureChunkWarp(ChunkPosition position, {VoidCallback? onComplete})async{
+    final tasks=<Future>[];
+    for(final p in position.getAround()){
+      tasks.add(_generateChunk(p));
+    }
+    await Future.wait(tasks);
+    onComplete?.call();
+  }
+  bool isChunkWarpAvailable(ChunkPosition position){
+    for(final p in position.getAround()){
+      final chunk=chunks[p];
+      if(chunk==null){
+        return false;
+      }
+      if(chunk.chunkData==null){
+        return false;
+      }
+    }
+    return true;
   }
 
-  void generateChunk(ChunkPosition position, {VoidCallback? onComplete}) async {
+  void requestGenerateChunk(ChunkPosition position, {VoidCallback? onComplete}) async {
+    final tasks=<Future>[_generateChunk(position)];
+    for(final p in position.getAround()){
+      tasks.add(_generateChunk(p));
+    }
+    await Future.wait(tasks);
+    onComplete?.call();
+  }
+  Future _generateChunk(ChunkPosition position)async{
     if (chunks.containsKey(position)) {
       return;
     }
     final chunk = Chunk(position, this);
     chunks[position] = chunk;
-    // ChunkData data = Chunk.generate((position, chunk.directionalVec));
+    //async
     ChunkData data = await compute(Chunk.generate, (
       position,
       chunk.directionalVec,
       chunk.primaryDirectionalVec,
       chunk.primaryDcx,
       chunk.primaryDcz,
-    ));
+      ));
+    //sync
+    // ChunkData data = Chunk.generate((
+    //   position,
+    //   chunk.directionalVec,
+    //   chunk.primaryDirectionalVec,
+    //   chunk.primaryDcx,
+    //   chunk.primaryDcz,
+    //   ));
     chunk.chunkData = data;
-    onComplete?.call();
   }
 
   bool isExists(ChunkPosition position) {
@@ -131,32 +166,12 @@ double getOppo(double v) {
 }
 
 final List<(int, int, int)> around = [
-  (-1, -1, -1),
-  (-1, -1, 0),
-  (-1, -1, 1),
-  (-1, 0, -1),
   (-1, 0, 0),
-  (-1, 0, 1),
-  (-1, 1, -1),
-  (-1, 1, 0),
-  (-1, 1, 1),
-  (0, -1, -1),
+  (1, 0, 0),
   (0, -1, 0),
-  (0, -1, 1),
+  (0, 1, 0),
   (0, 0, -1),
   (0, 0, 1),
-  (0, 1, -1),
-  (0, 1, 0),
-  (0, 1, 1),
-  (1, -1, -1),
-  (1, -1, 0),
-  (1, -1, 1),
-  (1, 0, -1),
-  (1, 0, 0),
-  (1, 0, 1),
-  (1, 1, -1),
-  (1, 1, 0),
-  (1, 1, 1),
 ];
 
 int sign(double v) {
@@ -179,6 +194,16 @@ class Chunk {
   late int primaryDcx;
   late int primaryDcz;
   ChunkData? chunkData;
+  @override
+  int get hashCode => position.hashCode;
+  @override
+  bool operator ==(Object other) {
+    if(other is Chunk){
+      return position==other.position;
+    }
+    return false;
+  }
+
 
   static bool isValidXZ(int x, int y, int z) {
     return x >= 0 && x < chunkSize && z >= 0 && z < chunkSize;
@@ -211,7 +236,7 @@ class Chunk {
     }
     final data = chunkData!;
     if (!isValidXZ(x, y, z)) {
-      final (dcx, dcz, xNew, zNew) = accessChunk(x, z);
+      final (dcx, dcz, xNew, zNew) = accessChunk(x, z);//try access other chunk
       final chunkNewPosition = ChunkPosition(
         position.x + dcx,
         position.z + dcz,
@@ -223,11 +248,24 @@ class Chunk {
           return true;
         }
         return isOpaque(chunkDataNew.dataXzy[xNew][zNew][y].type);
+      }else{//the other chunk is not generated
+        return false;
       }
-      return true;
     } else {
       return isOpaque(data.dataXzy[x][z][y].type);
     }
+  }
+  ///with translation
+  List<double> allVisibleFaces(int x,int y,int z){
+    final res=<double>[];
+    for(int i=0;i<6;i++){
+      final (dx,dy,dz) = around[i];
+      if(!_isOpaque(x+dx, y+dy, z+dz)){
+        final face=faceWithTranslation(blockVerticesFaces[i], position.x*chunkSize+x, y, position.z*chunkSize+z);
+        res.addAll(face);
+      }
+    }
+    return res;
   }
 
   (int,int,int) visibleFaces(int x, int y, int z, Vector3 cameraPos) {
@@ -365,25 +403,40 @@ class Chunk {
             chunkData.dataXzy[x][z][y].type = BlockType.grass;
           }
         }
-        if(random.nextDouble()<0.02){
+        if(random.nextDouble()<0.01){
           //gen tree
           final treeUp=height+3;
           for(var y=height;y<min(maxHeight,treeUp);y++){
             chunkData.dataXzy[x][z][y].type=BlockType.log;
           }
-          for(int dx=-1;dx<=1;dx++){
-            for(int dz=-1;dz<=1;dz++){
-              for(int dy=0;dy<=2;dy++){
+          final treeRadius=2;
+          final treeLeafHeight1=2;
+          for(int dx=-treeRadius;dx<=treeRadius;dx++){
+            for(int dz=-treeRadius;dz<=treeRadius;dz++){
+              for(int dy=0;dy<treeLeafHeight1;dy++){
                 chunkData.trySet(x+dx, treeUp+dy, z+dz, BlockType.leaf);
               }
             }
           }
+          final treeRadius2=1;
+          for(int dx=-treeRadius2;dx<=treeRadius2;dx++){
+            for(int dz=-treeRadius2;dz<=treeRadius2;dz++){
+              chunkData.trySet(x+dx, treeUp+treeLeafHeight1, z+dz, BlockType.leaf);
+            }
+          }
+          chunkData.trySet(x, treeUp+treeLeafHeight1+1, z, BlockType.leaf);
+          chunkData.trySet(x+1, treeUp+treeLeafHeight1+1, z, BlockType.leaf);
+          chunkData.trySet(x-1, treeUp+treeLeafHeight1+1, z, BlockType.leaf);
+          chunkData.trySet(x, treeUp+treeLeafHeight1+1, z+1, BlockType.leaf);
+          chunkData.trySet(x, treeUp+treeLeafHeight1+1, z-1, BlockType.leaf);
         }
       }
     }
     //done
     return chunkData;
   }
+
+
 }
 
 class ChunkData {
