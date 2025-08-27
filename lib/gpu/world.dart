@@ -32,9 +32,7 @@ class WorldRender extends CustomPainter {
   Size? _lastSize;
   late gpu.UniformSlot _frameInfoSlot;
   late gpu.UniformSlot _texSlot;
-  late gpu.UniformSlot _translationSlot;
   late double dpr;
-  late gpu.BufferView vertices;
   Map<ChunkPosition,ChunkBufferView> chunkFaces={};
 
   final ValueNotifier<int> notifier;
@@ -52,7 +50,6 @@ class WorldRender extends CustomPainter {
     );
     _frameInfoSlot = _pipeline.vertexShader.getUniformSlot('FrameInfo');
     _texSlot = _pipeline.fragmentShader.getUniformSlot('tex');
-    _translationSlot = _pipeline.vertexShader.getUniformSlot('Translation');
     //texture
     final grassImg=imageAssets.grass;
     _grassTexture = gpu.gpuContext.createTexture(
@@ -74,7 +71,6 @@ class WorldRender extends CustomPainter {
     _leafTexture.overwrite(leafImg.data);
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
-    vertices = _hostBuffer.emplace(blockVerticesByte);
   }
   ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
     //if it's cached, return it
