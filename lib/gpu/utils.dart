@@ -312,3 +312,11 @@ class ChunkBufferView{
   BufferWithLength leaf;
   ChunkBufferView({required this.grass, required this.log, required this.leaf});
 }
+
+///issue: Unable to allocate a device buffer: ErrorInitializationFailed
+gpu.BufferView createDeviceBuffer(ByteData byteData){
+  final deviceBuffer= gpu.gpuContext.createDeviceBuffer(gpu.StorageMode.hostVisible,byteData.lengthInBytes);
+  deviceBuffer.overwrite(byteData);
+  deviceBuffer.flush();
+  return gpu.BufferView(deviceBuffer, offsetInBytes: 0, lengthInBytes: byteData.lengthInBytes);
+}

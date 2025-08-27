@@ -19,7 +19,7 @@ class WorldRender extends CustomPainter {
   double horizonRotate = 0.0;
   double verticalRotate = 0.0;
   double renderRatio;
-  int viewDistance= 5;
+  int viewDistance= 4;
   MediaQueryData mediaQueryData;
 
   //resource
@@ -27,6 +27,9 @@ class WorldRender extends CustomPainter {
   late gpu.Texture _grassTexture;
   late gpu.Texture _logTexture;
   late gpu.Texture _leafTexture;
+  final samplerOptions=gpu.SamplerOptions(
+      mipFilter: gpu.MipFilter.linear,
+  );
   //buffer
   late gpu.HostBuffer _hostBuffer;
   late gpu.HostBuffer _transient;
@@ -243,11 +246,11 @@ class WorldRender extends CustomPainter {
           final buffer=getChunkFaceBuffer(chunkPosition);
           if(buffer!=null){
             //grass
-            pass.bindTexture(_texSlot, _grassTexture);
+            pass.bindTexture(_texSlot, _grassTexture,sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.grass.bufferView, buffer.grass.length);
             pass.draw();
             //log
-            pass.bindTexture(_texSlot, _logTexture);
+            pass.bindTexture(_texSlot, _logTexture,sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.log.bufferView, buffer.log.length);
             pass.draw();
             //leaf
@@ -260,7 +263,7 @@ class WorldRender extends CustomPainter {
       }
     }
     //draw leaves
-    pass.bindTexture(_texSlot, _leafTexture);
+    pass.bindTexture(_texSlot, _leafTexture,sampler: samplerOptions);
     for(final leaf in leaves){
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);
       pass.draw();

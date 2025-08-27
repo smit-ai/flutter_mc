@@ -46,6 +46,7 @@ class ControlPane extends StatelessWidget {
     final btn=ButtonLike(child: Icon(icon,size: 30,));
     return GestureDetector(
       onTapDown: (event) => onPressed(true),
+      onTapMove: (event)=> onPressed(true),
       onTapUp: (event) => onPressed(false),
       onTapCancel: () => onPressed(false),
       child: SizedBox(
