@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter GPU 3D',
+      title: 'FlutterCraft',
       home: Scaffold(body: World()),
     );
   }
