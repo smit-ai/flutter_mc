@@ -9,6 +9,7 @@ import 'package:vector_math/vector_math_64.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'shaders.dart';
 import 'dart:ui' as ui;
+import 'dart:developer' as developer;
 
 
 
@@ -152,9 +153,9 @@ class WorldRender extends CustomPainter {
   void paint(Canvas canvas, Size size){
     try{
       _paint(size);
-    }catch(e){
+    }catch(e,stackTrace){
       if (kDebugMode) {
-        print(e);
+        developer.log("paint error!:$e\n$stackTrace");
       }
     }
     if(image!=null){
@@ -212,7 +213,6 @@ class WorldRender extends CustomPainter {
 
 
     //uniform
-
     final persp = _perspectiveMatrix!;
     final focusDirection = Vector3(
       cos(horizonRotate) * cos(verticalRotate),
@@ -227,8 +227,6 @@ class WorldRender extends CustomPainter {
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
     final int z=((cameraPosition.z+radius)/chunkSize).floor();
-    // final List<double> mergedVertices = [];
-    // int count=0;
 
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
       for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){

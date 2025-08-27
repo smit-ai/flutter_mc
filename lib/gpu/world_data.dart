@@ -6,12 +6,12 @@ import 'package:flutter_gpu_demo/gpu/utils.dart';
 import 'package:vector_math/vector_math_64.dart';
 
 final chunkSize = 16;
-final strength = 9;
-final primaryStrength = strength * 2;
+final strength = 10;
+final primaryStrength = strength * 4;
 final primaryChunkScale = 2;
 final levelHeight = ((primaryStrength + strength) / 2).toInt();
 final maxHeight = primaryStrength + strength+5;
-final temperature = 2;
+final temperature = 2.2;
 
 class ChunkPosition {
   int x;
@@ -403,13 +403,18 @@ class Chunk {
             chunkData.dataXzy[x][z][y].type = BlockType.grass;
           }
         }
-        if(random.nextDouble()<0.01){
+        final treeRadius=2;
+        final treeRadius2=1;
+        final isTotalInChunk=treeRadius<=x&&x<chunkSize-treeRadius
+            &&treeRadius<=z&&z<chunkSize-treeRadius;
+        if(isTotalInChunk && random.nextDouble()<0.01){
           //gen tree
-          final treeUp=height+3;
+          final treeHeight=random.nextInt(3)+2;
+          final treeUp=height+treeHeight;
           for(var y=height;y<min(maxHeight,treeUp);y++){
             chunkData.dataXzy[x][z][y].type=BlockType.log;
           }
-          final treeRadius=2;
+
           final treeLeafHeight1=2;
           for(int dx=-treeRadius;dx<=treeRadius;dx++){
             for(int dz=-treeRadius;dz<=treeRadius;dz++){
@@ -418,7 +423,7 @@ class Chunk {
               }
             }
           }
-          final treeRadius2=1;
+
           for(int dx=-treeRadius2;dx<=treeRadius2;dx++){
             for(int dz=-treeRadius2;dz<=treeRadius2;dz++){
               chunkData.trySet(x+dx, treeUp+treeLeafHeight1, z+dz, BlockType.leaf);

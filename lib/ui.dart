@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ButtonLike extends StatelessWidget {
   final Widget child;
@@ -179,6 +180,31 @@ class _PointerMoveIndicatorState extends State<PointerMoveIndicator> {
       onPointerDown: (PointerDownEvent event) => setState(() => _event = event),
       onPointerMove: (PointerMoveEvent event) => setState(() => _event = event),
       onPointerUp: (PointerUpEvent event) => setState(() => _event = event),
+    );
+  }
+}
+
+void hideNotificationBar(){
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+  ));
+}
+
+class ControlMenu extends StatelessWidget {
+  final VoidCallback onReload;
+  const ControlMenu({super.key,required this.onReload});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        IconButton(
+          onPressed: onReload,
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
     );
   }
 }

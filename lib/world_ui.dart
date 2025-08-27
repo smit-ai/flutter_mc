@@ -17,7 +17,7 @@ class World extends StatefulWidget {
 }
 
 class _WorldState extends State<World> with TickerProviderStateMixin {
-  Vector3 cameraPosition = Vector3(2, levelHeight * 1.2, 2);
+  Vector3 cameraPosition = Vector3(2, levelHeight * 1.5, 2);
   double horizonRotate = 2.4;
   double verticalRotate = -0.6;
   double moveSpeed = 4;
@@ -130,6 +130,11 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
 
   WorldRender? render;
 
+  void reloadRender(){
+    setState(() {
+      render=null;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     MediaQueryData mediaQueryData = MediaQuery.of(context);
@@ -175,6 +180,9 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
     );
     final renderSize =
         mediaQueryData.size * mediaQueryData.devicePixelRatio * renderRatio;
+    final controlMenu = ControlMenu(
+      onReload: reloadRender,
+    );
     return Stack(
       children: [
         game,
@@ -183,6 +191,7 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
           'Cam:${vecToString(cameraPosition)} HorRot:${horizonRotate.toStringAsFixed(1)} VertRot:${verticalRotate.toStringAsFixed(1)} '
           'Render:${renderSize.width.toInt()}x${renderSize.height.toInt()}',
         ),
+        controlMenu,
       ],
     );
   }

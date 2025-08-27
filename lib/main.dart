@@ -18,6 +18,7 @@ void main() async{
     WidgetsFlutterBinding.ensureInitialized();
     DartPluginRegistrant.ensureInitialized();
   }
+  hideNotificationBar();
   await ensureInitialize();
   // var a=Chunk.calculateDirectionalVec(0,0,[-0.5,0.466,-0.94,-0.73]);
   runApp(fpsMonitor());
