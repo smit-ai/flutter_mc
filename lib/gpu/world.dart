@@ -105,7 +105,7 @@ class WorldRender extends CustomPainter {
         for(int y=0;y<maxHeight;y++){
           final block=chunkData.dataXzy[x][z][y];
           final blockType=block.type;
-          if(blockType==BlockType.none){
+          if(blockType==BlockType.air){
             continue;
           }
           final faces=chunk.allVisibleFaces(x, y, z);
@@ -123,9 +123,9 @@ class WorldRender extends CustomPainter {
       }
     }
     final res=ChunkBufferView(
-      grass: BufferWidthLength((_hostBuffer.emplace(float32(grass))),(grass.length/8).toInt()),
-      log: BufferWidthLength((_hostBuffer.emplace(float32(log))),(log.length/8).toInt()),
-      leaf: BufferWidthLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/8).toInt()),
+      grass: BufferWithLength((_hostBuffer.emplace(float32(grass))),(grass.length/8).toInt()),
+      log: BufferWithLength((_hostBuffer.emplace(float32(log))),(log.length/8).toInt()),
+      leaf: BufferWithLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/8).toInt()),
     );
     return res;
   }
@@ -227,7 +227,8 @@ class WorldRender extends CustomPainter {
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
     final int z=((cameraPosition.z+radius)/chunkSize).floor();
-
+    //leaves
+    List<BufferWithLength> leaves=[];
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
       for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){
         final chunkPosition=ChunkPosition(x+chunkDistanceX, z+chunkDistanceZ);
@@ -248,9 +249,7 @@ class WorldRender extends CustomPainter {
             pass.bindVertexBuffer(buffer.log.bufferView, buffer.log.length);
             pass.draw();
             //leaf
-            pass.bindTexture(_texSlot, _leafTexture);
-            pass.bindVertexBuffer(buffer.leaf.bufferView, buffer.leaf.length);
-            pass.draw();
+            leaves.add(buffer.leaf);
           }
         }else{
           //request
@@ -258,6 +257,13 @@ class WorldRender extends CustomPainter {
         }
       }
     }
+    //draw leaves
+    pass.bindTexture(_texSlot, _leafTexture);
+    for(final leaf in leaves){
+      pass.bindVertexBuffer(leaf.bufferView, leaf.length);
+      pass.draw();
+    }
+
 
     commandBuffer.submit();
     image = renderTexture.asImage();

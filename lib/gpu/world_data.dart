@@ -150,7 +150,7 @@ double _distance(int x1, int y1, int x2, int y2) {
 
 const double invalid = double.nan;
 
-enum BlockType { grass, log, leaf, none }
+enum BlockType { grass, log, leaf, air }
 
 final random = Random();
 
@@ -183,7 +183,10 @@ int sign(double v) {
 
 /// 检查是否为不透明
 bool isOpaque(BlockType type) {
-  return type != BlockType.none;
+  if(type==BlockType.leaf||type==BlockType.air){
+    return false;
+  }
+  return true;
 }
 
 class Chunk {
@@ -462,5 +465,5 @@ class ChunkData {
 }
 
 class BlockData {
-  BlockType type = BlockType.none;
+  BlockType type = BlockType.air;
 }

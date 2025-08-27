@@ -181,10 +181,10 @@ final upDirection = Vector3(0, 1, 0);
 Matrix4 translation(double dx,double dy,double dz){
   return Matrix4.identity()..setEntry(0,3,dx)..setEntry(1,3,dy)..setEntry(2,3,dz);
 }
-class BufferWidthLength{
+class BufferWithLength{
   gpu.BufferView bufferView;
   int length;
-  BufferWidthLength(this.bufferView, this.length);
+  BufferWithLength(this.bufferView, this.length);
 }
 
 class ImageProcessor {
@@ -307,8 +307,8 @@ bool frustumContainsSphere(Matrix4 viewProj, Vector3 center, double radius) {
 }
 
 class ChunkBufferView{
-  BufferWidthLength grass;
-  BufferWidthLength log;
-  BufferWidthLength leaf;
+  BufferWithLength grass;
+  BufferWithLength log;
+  BufferWithLength leaf;
   ChunkBufferView({required this.grass, required this.log, required this.leaf});
 }
