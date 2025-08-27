@@ -38,8 +38,22 @@ class WorldRender extends CustomPainter {
   Matrix4? _perspectiveMatrix;
 
   Size? _lastSize;
+  //uniform
   late gpu.UniformSlot _frameInfoSlot;
   late gpu.UniformSlot _texSlot;
+  late gpu.UniformSlot _viewPosSlot;
+  //lighting
+  late gpu.UniformSlot _lightSlot;
+  //material
+  late gpu.UniformSlot _materialSlot;
+  //instance
+  late LightMaterialBuffered _afternoon;
+  late LightMaterialBuffered _sunset;
+  late PhongMaterialBuffered _grassMaterial;
+  late PhongMaterialBuffered _logMaterial;
+  late PhongMaterialBuffered _leafMaterial;
+  late PhongMaterialBuffered _waterMaterial;
+
   late double dpr;
 
   Map<ChunkPosition,ChunkBufferView> chunkFaces={};
@@ -57,8 +71,12 @@ class WorldRender extends CustomPainter {
       vertexShader,
       fragmentShader,
     );
+    //uniform
     _frameInfoSlot = _pipeline.vertexShader.getUniformSlot('FrameInfo');
     _texSlot = _pipeline.fragmentShader.getUniformSlot('tex');
+    _viewPosSlot = _pipeline.fragmentShader.getUniformSlot('CameraBlock');
+    _lightSlot = _pipeline.fragmentShader.getUniformSlot('LightBlock');
+    _materialSlot = _pipeline.fragmentShader.getUniformSlot('MaterialBlock');
     //texture
     final grassImg=imageAssets.grass;
     _grassTexture = gpu.gpuContext.createTexture(
@@ -87,8 +105,19 @@ class WorldRender extends CustomPainter {
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     _transient = gpu.gpuContext.createHostBuffer();
-    //render target
-
+    //material
+    _afternoon=LightMaterialBuffered.from(LightMaterial.afternoon,_hostBuffer);
+    _sunset=LightMaterialBuffered.from(LightMaterial.sunset,_hostBuffer);
+    _grassMaterial=PhongMaterialBuffered.from(PhongMaterial.grass,_hostBuffer);
+    _logMaterial=PhongMaterialBuffered.from(PhongMaterial.log,_hostBuffer);
+    _leafMaterial=PhongMaterialBuffered.from(PhongMaterial.leaf,_hostBuffer);
+    _waterMaterial=PhongMaterialBuffered.from(PhongMaterial.water,_hostBuffer);
+  }
+  void setLightingMaterial(gpu.RenderPass pass,LightMaterialBuffered material){
+    pass.bindUniform(_lightSlot, material.data);
+  }
+  void setMaterial(gpu.RenderPass pass,PhongMaterialBuffered material){
+    pass.bindUniform(_materialSlot, material.data);
   }
   ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
     //if it's cached, return it
@@ -236,7 +265,7 @@ class WorldRender extends CustomPainter {
 
 
 
-    //uniform
+
     final persp = _perspectiveMatrix!;
     final focusDirection = Vector3(
       cos(horizonRotate) * cos(verticalRotate),
@@ -247,7 +276,10 @@ class WorldRender extends CustomPainter {
     final view = makeViewMatrix(cameraPosition, focusDirection+cameraPosition, upDirection);
     final pvs=persp*view;
     final mvp = _transient.emplace(float32Mat(pvs,),);
+    //uniform
     pass.bindUniform(_frameInfoSlot, mvp);
+    // pass.bindUniform(_viewPosSlot, _transient.emplace(float32(cameraPosition.storage)));
+    // setLightingMaterial(pass, _afternoon);
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();
     final int z=((cameraPosition.z+radius)/chunkSize).floor();
@@ -267,10 +299,12 @@ class WorldRender extends CustomPainter {
           final buffer=getChunkFaceBuffer(chunkPosition);
           if(buffer!=null){
             //grass
+            // setMaterial(pass, _grassMaterial);
             pass.bindTexture(_texSlot, _grassTexture,sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.grass.bufferView, buffer.grass.length);
             pass.draw();
             //log
+            // setMaterial(pass, _logMaterial);
             pass.bindTexture(_texSlot, _logTexture,sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.log.bufferView, buffer.log.length);
             pass.draw();
@@ -287,6 +321,7 @@ class WorldRender extends CustomPainter {
     }
     pass.setCullMode(gpu.CullMode.none);
     //draw water
+    // setMaterial(pass, _waterMaterial);
     pass.bindTexture(_texSlot, _waterTexture,sampler: samplerOptions);
     for(final water in water){
       pass.bindVertexBuffer(water.bufferView, water.length);
@@ -294,6 +329,7 @@ class WorldRender extends CustomPainter {
     }
     pass.setCullMode(gpu.CullMode.backFace);
     //draw leaves
+    // setMaterial(pass, _leafMaterial);
     pass.bindTexture(_texSlot, _leafTexture,sampler: samplerOptions);
     for(final leaf in leaves){
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);
