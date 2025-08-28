@@ -12,7 +12,7 @@ final primaryChunkScale = 2;
 final levelHeight = primaryStrength + strength ;
 final waterLevel=(levelHeight*2/3).toInt();
 final maxHeight = (primaryStrength + strength)*2+5;
-final temperature = 2.2;
+final temperature = 3;
 
 class ChunkPosition {
   int x;

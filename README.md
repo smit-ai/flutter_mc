@@ -2,7 +2,7 @@
 
 A Minecraft-like game demo using Flutter GPU API.
 
-![](./screenshots/main.jpg)
+![](./screenshots/main.png)
 
 **Note: need impeller backend** (windows unavailable now)
 
@@ -11,7 +11,7 @@ A Minecraft-like game demo using Flutter GPU API.
 - chunk-based
 - terrain generation
 - face culling
-- Blinn phong lighting
+- blinn-phong lighting
 
 # known issue
 
