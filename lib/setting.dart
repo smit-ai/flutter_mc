@@ -131,8 +131,8 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
   @override
   Widget build(BuildContext context) {
     final lightingModels=Wrap(
-      spacing: 20,
-      runSpacing: 10,
+      spacing: 10,
+      runSpacing: 5,
       children: [
         LightingSetButton(morning, _stateChanged),
         LightingSetButton(afternoon,_stateChanged),
@@ -143,6 +143,12 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         LightingSetButton(volcanic, _stateChanged),
         LightingSetButton(polarNight, _stateChanged),
         LightingSetButton(apocalypse, _stateChanged),
+        LightingSetButton(radioactive, _stateChanged),
+        LightingSetButton(nebula, _stateChanged),
+        LightingSetButton(cyberpunk, _stateChanged),
+        LightingSetButton(voidLight, _stateChanged),
+        LightingSetButton(eldritch, _stateChanged),
+        LightingSetButton(nether, _stateChanged)
       ],
     );
     final viewDistanceSlider=Slider(

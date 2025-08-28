@@ -21,6 +21,12 @@ void ensureInitializedGpuResource(){
   volcanic=LightMaterialBuffered.from(LightMaterial.volcanic,_hostBuffer);
   polarNight=LightMaterialBuffered.from(LightMaterial.polarNight,_hostBuffer);
   apocalypse=LightMaterialBuffered.from(LightMaterial.apocalypse,_hostBuffer);
+  radioactive=LightMaterialBuffered.from(LightMaterial.radioactive,_hostBuffer);
+  nebula=LightMaterialBuffered.from(LightMaterial.nebula,_hostBuffer);
+  cyberpunk=LightMaterialBuffered.from(LightMaterial.cyberpunk,_hostBuffer);
+  voidLight=LightMaterialBuffered.from(LightMaterial.voidLight,_hostBuffer);
+  eldritch=LightMaterialBuffered.from(LightMaterial.eldritch,_hostBuffer);
+  nether=LightMaterialBuffered.from(LightMaterial.nether,_hostBuffer);
 }
 final ChunkManager chunkManager=ChunkManager();
 
@@ -37,6 +43,14 @@ late LightMaterialBuffered bloodMoon;
 late LightMaterialBuffered volcanic;
 late LightMaterialBuffered polarNight;
 late LightMaterialBuffered apocalypse;
+late LightMaterialBuffered radioactive;
+late LightMaterialBuffered nebula;
+late LightMaterialBuffered cyberpunk;
+late LightMaterialBuffered voidLight;
+late LightMaterialBuffered eldritch;
+late LightMaterialBuffered nether;
+
+
 late HostBuffer _hostBuffer;
 LightMaterialBuffered selectedLighting=afternoon;
 void useLighting(LightMaterialBuffered lighting){

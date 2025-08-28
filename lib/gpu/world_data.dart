@@ -610,6 +610,54 @@ class LightMaterial{
     'volcanic',
     vm.Vector4(0.9, 0.3, 0.1, 1.0),  // 天空：血红橙
   );
+  static final voidLight = LightMaterial(
+    Vector3(0.0, -0.5, -0.9),
+    Vector3(0.05, 0.0, 0.1),     // 环境光：极暗紫黑
+    Vector3(0.3, 0.0, 0.5),      // 漫反射：诡异紫色
+    Vector3(0.8, 0.2, 1.0),      // 高光：强烈紫白
+    'void',
+    vm.Vector4(0.15, 0.0, 0.2, 1.0),// 天空：深紫黑
+  );
+  static final cyberpunk = LightMaterial(
+    Vector3(-0.3, -0.6, -0.4),
+    Vector3(0.1, 0.05, 0.2),     // 环境光：暗紫
+    Vector3(0.5, 0.1, 0.8),      // 漫反射：粉紫霓虹
+    Vector3(0.4, 0.8, 1.0),      // 高光：蓝白
+    'cyberpunk',
+    vm.Vector4(0.2, 0.05, 0.3, 1.0),// 天空：紫黑霓虹
+  );
+  static final nebula = LightMaterial(
+    Vector3(-0.5, -0.5, -0.2),
+    Vector3(0.1, 0.1, 0.2),       // 环境光：冷蓝
+    Vector3(0.4, 0.2, 0.6),       // 漫反射：紫蓝
+    Vector3(1.0, 0.6, 0.9),       // 高光：粉紫白
+    'nebula',
+    vm.Vector4(0.3, 0.15, 0.4, 1.0), // 天空：梦幻紫蓝
+  );
+  static final radioactive = LightMaterial(
+    Vector3(-0.2, -0.7, -0.5),
+    Vector3(0.05, 0.1, 0.05),     // 环境光：暗绿
+    Vector3(0.3, 0.8, 0.3),       // 漫反射：诡异荧光绿
+    Vector3(0.6, 1.0, 0.6),       // 高光：强烈的毒绿
+    'radioactive',
+    vm.Vector4(0.2, 0.4, 0.2, 1.0),  // 天空：阴森绿灰
+  );
+  static final eldritch = LightMaterial(
+    Vector3(-0.4, -0.7, -0.3),
+    Vector3(0.0, 0.1, 0.05),     // 环境光：阴冷绿
+    Vector3(0.2, 0.6, 0.3),      // 漫反射：病态绿光
+    Vector3(0.8, 0.3, 1.0),      // 高光：诡异紫白
+    'eldritch',
+    vm.Vector4(0.1, 0.2, 0.15, 1.0), // 天空：阴冷病绿
+  );
+  static final nether = LightMaterial(
+    Vector3(0.0, -1.0, 0.0),
+    Vector3(-0.1, -0.1, -0.1),  // 环境光：负光，反直觉
+    Vector3(0.2, 0.0, 0.3),     // 漫反射：幽暗紫黑
+    Vector3(0.9, 0.0, 0.0),     // 高光：猩红血光
+    'nether',
+    vm.Vector4(0.05, 0.0, 0.1, 1.0), // 天空：深紫黑
+  );
 }
 
 class FogData {
