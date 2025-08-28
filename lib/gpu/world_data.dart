@@ -610,10 +610,19 @@ class LightMaterial{
     'volcanic',
     vm.Vector4(0.9, 0.3, 0.1, 1.0),  // 天空：血红橙
   );
+}
 
-
-
-
+class FogData {
+  vm.Vector4 color;
+  double start;
+  double end;
+  FogData(this.color, this.start, this.end);
+  List<double> toArray(){
+    return <double>[
+      ...color.storage,
+      start,end,0,0
+    ];
+  }
 }
 
 class BlockData {

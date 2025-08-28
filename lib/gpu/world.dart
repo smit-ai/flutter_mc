@@ -46,12 +46,14 @@ class WorldRender extends CustomPainter {
   late gpu.UniformSlot _lightSlot;
   //material
   late gpu.UniformSlot _materialSlot;
+  //fog
+  late gpu.UniformSlot _fogSlot;
   //instance
-
   late PhongMaterialBuffered _grassMaterial;
   late PhongMaterialBuffered _logMaterial;
   late PhongMaterialBuffered _leafMaterial;
   late PhongMaterialBuffered _waterMaterial;
+  gpu.BufferView? _fogBufferView;
 
   late double dpr;
 
@@ -74,6 +76,7 @@ class WorldRender extends CustomPainter {
     _viewPosSlot = _pipeline.fragmentShader.getUniformSlot('CameraBlock');
     _lightSlot = _pipeline.fragmentShader.getUniformSlot('LightBlock');
     _materialSlot = _pipeline.fragmentShader.getUniformSlot('MaterialBlock');
+    _fogSlot = _pipeline.fragmentShader.getUniformSlot('FogBlock');
     //texture
     final grassImg=imageAssets.grass;
     _grassTexture = gpu.gpuContext.createTexture(
@@ -126,7 +129,11 @@ class WorldRender extends CustomPainter {
       chunk.chunkBufferView=buffer;
     }
     return buffer;
-
+  }
+  void _buildFogBuffer(){
+    final far=(viewDistance*chunkSize);
+    final fogData=FogData(selectedLighting.raw.skyColor,far*fogStart,far*fogEnd);
+    _fogBufferView=_hostBuffer.emplace(float32(fogData.toArray()));
   }
   ChunkBufferView? _calculateChunkBuffer(Chunk chunk){
     if(chunk.chunkData==null){
@@ -262,6 +269,13 @@ class WorldRender extends CustomPainter {
       onlyBuildRenderTarget();
     }
     rebuildTargetFlag=false;
+    //build fog
+    if(_fogBufferView==null || rebuildFogBufferFlag){
+      _buildFogBuffer();
+    }
+    rebuildFogBufferFlag=false;
+
+
 
     //command buffer
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
@@ -287,6 +301,8 @@ class WorldRender extends CustomPainter {
     final viewPos=_transient.emplace(float32(cameraPosition.storage));
     pass.bindUniform(_viewPosSlot, viewPos);
     setLightingMaterial(pass, selectedLighting);
+    //bind fog
+    pass.bindUniform(_fogSlot, _fogBufferView!);
 
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();

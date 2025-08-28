@@ -26,7 +26,7 @@ class _SettingPageState extends State<SettingPage>
 
   final _pages = <Widget>[
     DisplaySetting(),
-    GraphicsSetting(),
+    SingleChildScrollView(child: GraphicsSetting()),
     About()
   ];
 
@@ -131,9 +131,20 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         max: 32,
         onChanged: (value){
       setState(() {
-        viewDistance=value.round();
+        setViewDistance(value.round());
       });
     });
+    final fogSlider=RangeSlider(
+        values: RangeValues(fogStart, fogEnd),
+        min: 0,
+        max: 2,
+        onChanged: (value){
+          setState(() {
+            fogStart=value.start;
+            fogEnd=value.end;
+            rebuildFogBufferFlag=true;
+          });
+        });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: columnSpacing,
@@ -141,7 +152,9 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         Text("lighting: ${selectedLighting.raw.name}"),
         lightingModels,
         Text("View Distance: $viewDistance"),
-        viewDistanceSlider
+        viewDistanceSlider,
+        Text("Fog: ${fogStart.toStringAsFixed(2)} - ${fogEnd.toStringAsFixed(2)}"),
+        fogSlider,
       ],
     );
   }

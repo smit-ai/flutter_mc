@@ -17,7 +17,10 @@ layout(binding = 2) uniform CameraBlock {
     vec3 viewPos;
 } camera;
 layout(binding = 3) uniform sampler2D tex;
-
+layout(binding = 4) uniform FogBlock{
+    vec4 color;
+    vec4 range;//x is start, y is end
+} fog;
 
 in vec2 v_texture_coords;
 in vec3 v_normal;
@@ -33,6 +36,7 @@ void main() {
     // 法线 & 光照方向
     vec3 norm = normalize(v_normal);
     vec3 lightDir = normalize(-light.direction);
+    vec3 toCamera=camera.viewPos-v_fragPos;
 
     // 环境光
     vec3 ambient = light.ambient * material.ambient * texColor;
@@ -42,14 +46,18 @@ void main() {
     vec3 diffuse = light.diffuse * (diff * material.diffuse) * texColor;
 
     // 高光 (使用Blinn-Phong模型)
-    vec3 viewDir = normalize(camera.viewPos - v_fragPos);
+    vec3 viewDir = normalize(toCamera);
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float shine = max(material.shininess.x, 1.0); // 确保shininess至少为1
     float spec = pow(max(dot(norm, halfwayDir), 0.0), shine);
     vec3 specular = light.specular * spec * material.specular;
-//    vec3 specular = light.specular *spec*vec3(1,0,1);
 
-    vec3 result = ambient + diffuse + specular;
-    frag_color = vec4(result,textColor4.a);
+    vec4 result = vec4(ambient + diffuse + specular,textColor4.a);
+
+    //fog
+    float fogIntensity = smoothstep(fog.range.x, fog.range.y, length(toCamera));
+    vec4 finalColor = mix(result, fog.color, fogIntensity);
+
+    frag_color = finalColor;
 //    frag_color = texture(tex, v_texture_coords);
 }

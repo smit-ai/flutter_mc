@@ -42,8 +42,20 @@ LightMaterialBuffered selectedLighting=afternoon;
 void useLighting(LightMaterialBuffered lighting){
   selectedLighting=lighting;
   rebuildTargetFlag=true;
+  rebuildFogBufferFlag=true;
 }
-int viewDistance=4;
+int _viewDistance=4;
+int get viewDistance{
+  return _viewDistance;
+}
+void setViewDistance(int distance){
+  _viewDistance=distance;
+  rebuildFogBufferFlag=true;
+}
+//fog
+bool rebuildFogBufferFlag=false;// fog,lighting,view-distance need rebuild fog buffer
+double fogStart=0.9;
+double fogEnd=1.1;
 
 //player
 Vector3 cameraPosition = Vector3(2, levelHeight * 1.5, 2);
