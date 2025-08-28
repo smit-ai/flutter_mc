@@ -25,8 +25,8 @@ class _SettingPageState extends State<SettingPage>
   }
 
   final _pages = <Widget>[
-    DisplaySetting(),
     SingleChildScrollView(child: GraphicsSetting()),
+    DisplaySetting(),
     About()
   ];
 
@@ -46,12 +46,12 @@ class _SettingPageState extends State<SettingPage>
             labelType: NavigationRailLabelType.all,
             destinations: const [
               NavigationRailDestination(
-                icon: Icon(Icons.screenshot_monitor),
-                label: Text("Display"),
-              ),
-              NavigationRailDestination(
                 icon: Icon(Icons.photo),
                 label: Text("Graphics"),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.screenshot_monitor),
+                label: Text("Display"),
               ),
               NavigationRailDestination(
                 icon: Icon(Icons.info),
@@ -87,6 +87,15 @@ class _DisplaySettingState extends State<DisplaySetting> {
           onChanged: (value) {
             setState(() {
               renderRatio = value;
+            });
+          },
+        ),
+        Text("Display Detail: $displayDetail"),
+        Switch(
+          value: displayDetail,
+          onChanged: (value) {
+            setState(() {
+              displayDetail = value;
             });
           },
         ),

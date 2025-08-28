@@ -62,3 +62,6 @@ Vector3 cameraPosition = Vector3(2, levelHeight * 1.5, 2);
 double horizonRotate = 2.4;
 double verticalRotate = -0.6;
 
+//ui
+bool displayDetail=true;
+

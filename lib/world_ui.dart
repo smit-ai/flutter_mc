@@ -181,16 +181,20 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
     final controlMenu = ControlMenu(
       onReload: reloadRender,
     );
+    final stack=<Widget>[
+      game,
+      controlPane,
+      controlMenu,
+    ];
+    if(displayDetail){
+      final topInfo=TopInfo(
+        'Cam:${vecToString(cameraPosition)} HorRot:${horizonRotate.toStringAsFixed(1)} VertRot:${verticalRotate.toStringAsFixed(1)} '
+            'Render:${renderSize.width.toInt()}x${renderSize.height.toInt()}',
+      );
+      stack.add(topInfo);
+    }
     return Stack(
-      children: [
-        game,
-        controlPane,
-        TopInfo(
-          'Cam:${vecToString(cameraPosition)} HorRot:${horizonRotate.toStringAsFixed(1)} VertRot:${verticalRotate.toStringAsFixed(1)} '
-          'Render:${renderSize.width.toInt()}x${renderSize.height.toInt()}',
-        ),
-        controlMenu,
-      ],
+      children: stack,
     );
   }
 }
