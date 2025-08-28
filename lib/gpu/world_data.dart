@@ -504,28 +504,28 @@ class BlinnPhongMaterial{
   final double shininess;
   BlinnPhongMaterial(this.ambient, this.diffuse, this.specular, this.shininess);
   static final grass=BlinnPhongMaterial(
-    Vector3(0.2, 0.25, 0.2),   // 环境光：微微带绿色
-    Vector3(0.3, 0.6, 0.3),    // 漫反射：鲜明的草绿色
+    Vector3(0.5, 0.55, 0.5),   // 环境光：微微带绿色
+    Vector3(0.2, 0.5, 0.2),    // 漫反射：鲜明的草绿色
     Vector3(0.1, 0.1, 0.1),    // 高光：草是哑光材质
-    32.0,                       // 高光散射小，比较模糊
+    16.0,                       // 高光散射小，比较模糊
   );
   static final log= BlinnPhongMaterial(
-    Vector3(0.25, 0.2, 0.15),  // 环境光：偏暗棕色
-    Vector3(0.5, 0.35, 0.2),   // 漫反射：木头棕色
+    Vector3(0.5, 0.45, 0.3),// 环境光
+    Vector3(0.25, 0.2, 0.15),  // 漫反射
     Vector3(0.1, 0.1, 0.1),    // 高光弱
-    32.0,
+    24.0,
   );
   static final leaf=BlinnPhongMaterial(
-    Vector3(0.1, 0.2, 0.1),    // 环境光：暗绿色
+    Vector3(0.2, 0.3, 0.2),    // 环境光：暗绿色
     Vector3(0.2, 0.5, 0.2),    // 漫反射：中等绿色
     Vector3(0.05, 0.05, 0.05), // 高光极弱
-    32.0,
+    24.0,
   );
   static final water=BlinnPhongMaterial(
     Vector3(0.0, 0.0, 0.05),   // 环境光：淡蓝色
     Vector3(0.1, 0.2, 0.5),    // 漫反射：水的蓝色
-    Vector3(0.4, 0.4, 0.4),    // 高光：水面有较强镜面反射
-    256.0,                      // 高光锐利
+    Vector3(0.5, 0.5, 0.5),    // 高光：水面有较强镜面反射
+    48.0,                      // 高光锐利
   );
 }
 class LightMaterial{

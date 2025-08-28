@@ -4,7 +4,7 @@ layout(binding = 0)uniform MaterialBlock {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    float shininess;
+    vec4 shininess;//actual shininess is shininess.x
 } material;
 
 layout(binding = 1) uniform LightBlock {
@@ -44,7 +44,7 @@ void main() {
     // 高光 (使用Blinn-Phong模型)
     vec3 viewDir = normalize(camera.viewPos - v_fragPos);
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float shine = max(material.shininess, 1.0); // 确保shininess至少为1
+    float shine = max(material.shininess.x, 1.0); // 确保shininess至少为1
     float spec = pow(max(dot(norm, halfwayDir), 0.0), shine);
     vec3 specular = light.specular * spec * material.specular;
 //    vec3 specular = light.specular *spec*vec3(1,0,1);
