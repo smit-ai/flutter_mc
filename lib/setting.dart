@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gpu_demo/about.dart';
 import 'package:flutter_gpu_demo/config.dart';
 import 'package:flutter_gpu_demo/gpu/utils.dart';
 
@@ -23,7 +24,11 @@ class _SettingPageState extends State<SettingPage>
     super.dispose();
   }
 
-  final _pages = <Widget>[DisplaySetting(), GraphicsSetting()];
+  final _pages = <Widget>[
+    DisplaySetting(),
+    GraphicsSetting(),
+    About()
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +52,10 @@ class _SettingPageState extends State<SettingPage>
               NavigationRailDestination(
                 icon: Icon(Icons.photo),
                 label: Text("Graphics"),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.info),
+                label: Text("About"),
               ),
             ],
           ),
