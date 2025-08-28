@@ -20,7 +20,6 @@ class WorldRender extends CustomPainter {
   double horizonRotate = 0.0;
   double verticalRotate = 0.0;
   double renderRatio;
-  int viewDistance= 4;
   MediaQueryData mediaQueryData;
 
   //resource
@@ -55,8 +54,6 @@ class WorldRender extends CustomPainter {
   late PhongMaterialBuffered _waterMaterial;
 
   late double dpr;
-
-  Map<ChunkPosition,ChunkBufferView> chunkFaces={};
 
   final ValueNotifier<int> notifier;
   WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,
@@ -119,13 +116,14 @@ class WorldRender extends CustomPainter {
   }
   ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
     //if it's cached, return it
-    final res= chunkFaces[position];
+    final chunk= chunkManager.chunks[position]!;
+    final res=chunk.chunkBufferView;
     if(res!=null){
       return res;
     }
-    final buffer=_calculateChunkBuffer(chunkManager.chunks[position]!);
+    final buffer=_calculateChunkBuffer(chunk);
     if(buffer!=null){
-      chunkFaces[position]=buffer;
+      chunk.chunkBufferView=buffer;
     }
     return buffer;
 

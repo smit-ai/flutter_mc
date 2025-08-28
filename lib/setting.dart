@@ -110,26 +110,38 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
   }
   @override
   Widget build(BuildContext context) {
+    final lightingModels=Wrap(
+      spacing: 20,
+      runSpacing: 10,
+      children: [
+        LightingSetButton(morning, _stateChanged),
+        LightingSetButton(afternoon,_stateChanged),
+        LightingSetButton(sunset,_stateChanged),
+        LightingSetButton(moonlight, _stateChanged),
+        LightingSetButton(rainy, _stateChanged),
+        LightingSetButton(bloodMoon, _stateChanged),
+        LightingSetButton(volcanic, _stateChanged),
+        LightingSetButton(polarNight, _stateChanged),
+        LightingSetButton(apocalypse, _stateChanged),
+      ],
+    );
+    final viewDistanceSlider=Slider(
+        value: viewDistance.toDouble(),
+        min: 0,
+        max: 32,
+        onChanged: (value){
+      setState(() {
+        viewDistance=value.round();
+      });
+    });
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: columnSpacing,
       children: [
         Text("lighting: ${selectedLighting.raw.name}"),
-        Wrap(
-          spacing: 20,
-          runSpacing: 10, // 新增行间距属性
-          children: [
-            LightingSetButton(morning, _stateChanged),
-            LightingSetButton(afternoon,_stateChanged),
-            LightingSetButton(sunset,_stateChanged),
-            LightingSetButton(moonlight, _stateChanged),
-            LightingSetButton(rainy, _stateChanged),
-            LightingSetButton(bloodMoon, _stateChanged),
-            LightingSetButton(volcanic, _stateChanged),
-            LightingSetButton(polarNight, _stateChanged),
-            LightingSetButton(apocalypse, _stateChanged),
-          ],
-        )
+        lightingModels,
+        Text("View Distance: $viewDistance"),
+        viewDistanceSlider
       ],
     );
   }

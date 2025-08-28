@@ -222,6 +222,7 @@ class Chunk {
   late int primaryDcx;
   late int primaryDcz;
   ChunkData? chunkData;
+  ChunkBufferView? chunkBufferView;
   @override
   int get hashCode => position.hashCode;
   @override

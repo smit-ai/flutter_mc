@@ -42,4 +42,5 @@ void useLighting(LightMaterialBuffered lighting){
   selectedLighting=lighting;
   rebuildTargetFlag=true;
 }
+int viewDistance=4;
 
