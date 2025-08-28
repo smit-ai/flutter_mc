@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:flutter_gpu_demo/ui.dart';
 import 'package:flutter_gpu_demo/gpu/world.dart';
-import 'package:vector_math/vector_math_64.dart';
+
 
 import 'config.dart';
 import 'gpu/shaders.dart';
@@ -19,9 +19,6 @@ class World extends StatefulWidget {
 }
 
 class _WorldState extends State<World> with TickerProviderStateMixin {
-  Vector3 cameraPosition = Vector3(2, levelHeight * 1.5, 2);
-  double horizonRotate = 2.4;
-  double verticalRotate = -0.6;
   double moveSpeed = 4;
   double _moveSpeedByTime = 0;
   bool forwardState = false,

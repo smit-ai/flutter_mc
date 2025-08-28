@@ -3,6 +3,7 @@ import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'gpu/utils.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 late PackageInfo packageInfo;
 Future ensureInitialized()async{
@@ -43,4 +44,9 @@ void useLighting(LightMaterialBuffered lighting){
   rebuildTargetFlag=true;
 }
 int viewDistance=4;
+
+//player
+Vector3 cameraPosition = Vector3(2, levelHeight * 1.5, 2);
+double horizonRotate = 2.4;
+double verticalRotate = -0.6;
 
