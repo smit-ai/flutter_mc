@@ -262,8 +262,8 @@ class WorldRender extends CustomPainter {
       buildRenderTarget(width, height);
     }else if(rebuildTargetFlag){
       onlyBuildRenderTarget();
-      rebuildTargetFlag=false;
     }
+    rebuildTargetFlag=false;
 
     //command buffer
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
