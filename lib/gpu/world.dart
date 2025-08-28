@@ -295,8 +295,10 @@ class WorldRender extends CustomPainter {
     List<BufferWithLength> leaves=[];
     //water
     List<BufferWithLength> water=[];
+    final chunkViewRadiusSquared=pow(viewDistance+0.5,2);
     for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
-      for(int chunkDistanceZ=-viewDistance;chunkDistanceZ<=viewDistance;chunkDistanceZ++){
+      final zRange=sqrt(chunkViewRadiusSquared-chunkDistanceX*chunkDistanceX).floor();
+      for(int chunkDistanceZ=-zRange;chunkDistanceZ<=zRange;chunkDistanceZ++){
         final chunkPosition=ChunkPosition(x+chunkDistanceX, z+chunkDistanceZ);
         if(!isChunkVisible(chunkPosition, pvs)){
           continue;
