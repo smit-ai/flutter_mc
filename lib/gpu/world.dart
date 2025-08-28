@@ -48,8 +48,7 @@ class WorldRender extends CustomPainter {
   //material
   late gpu.UniformSlot _materialSlot;
   //instance
-  late LightMaterialBuffered _afternoon;
-  late LightMaterialBuffered _sunset;
+
   late PhongMaterialBuffered _grassMaterial;
   late PhongMaterialBuffered _logMaterial;
   late PhongMaterialBuffered _leafMaterial;
@@ -107,8 +106,6 @@ class WorldRender extends CustomPainter {
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     _transient = gpu.gpuContext.createHostBuffer();
     //material
-    _afternoon=LightMaterialBuffered.from(LightMaterial.afternoon,_hostBuffer);
-    _sunset=LightMaterialBuffered.from(LightMaterial.sunset,_hostBuffer);
     _grassMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.grass,_hostBuffer);
     _logMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.log,_hostBuffer);
     _leafMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.leaf,_hostBuffer);
@@ -199,6 +196,7 @@ class WorldRender extends CustomPainter {
   ui.Image? image;
   gpu.RenderTarget? _renderTarget;
   late gpu.Texture _renderTexture;
+  late gpu.Texture _depthTexture;
   @override
   void paint(Canvas canvas, Size size){
     try{
@@ -225,7 +223,7 @@ class WorldRender extends CustomPainter {
       coordinateSystem: gpu.TextureCoordinateSystem.renderToTexture,
     );
 
-    final depthTexture = gpu.gpuContext.createTexture(
+    _depthTexture = gpu.gpuContext.createTexture(
       gpu.StorageMode.deviceTransient,
       width,
       height,
@@ -233,14 +231,17 @@ class WorldRender extends CustomPainter {
       enableRenderTargetUsage: true,
       coordinateSystem: gpu.TextureCoordinateSystem.renderToTexture,
     );
+    onlyBuildRenderTarget();
+  }
+  void onlyBuildRenderTarget(){
     //target
     _renderTarget = gpu.RenderTarget.singleColor(
       gpu.ColorAttachment(
           texture: _renderTexture,
-          clearValue: vm.Vector4(0,0,0,0.5)
+          clearValue: selectedLighting.raw.skyColor
       ),
       depthStencilAttachment: gpu.DepthStencilAttachment(
-        texture: depthTexture,
+        texture: _depthTexture,
         depthClearValue: 1,
       ),
     );
@@ -259,6 +260,9 @@ class WorldRender extends CustomPainter {
       );
       _lastSize = size;
       buildRenderTarget(width, height);
+    }else if(rebuildTargetFlag){
+      onlyBuildRenderTarget();
+      rebuildTargetFlag=false;
     }
 
     //command buffer
@@ -284,7 +288,7 @@ class WorldRender extends CustomPainter {
     pass.bindUniform(_frameInfoSlot, mvp);
     final viewPos=_transient.emplace(float32(cameraPosition.storage));
     pass.bindUniform(_viewPosSlot, viewPos);
-    setLightingMaterial(pass, _afternoon);
+    setLightingMaterial(pass, selectedLighting);
 
     //calc chunk
     final int x=((cameraPosition.x+radius)/chunkSize).floor();

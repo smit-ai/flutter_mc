@@ -7,6 +7,8 @@ import 'package:flutter_gpu_demo/ui.dart';
 import 'package:flutter_gpu_demo/gpu/world.dart';
 import 'package:vector_math/vector_math_64.dart';
 
+import 'config.dart';
+import 'gpu/shaders.dart';
 import 'gpu/utils.dart';
 
 class World extends StatefulWidget {
@@ -22,7 +24,6 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
   double verticalRotate = -0.6;
   double moveSpeed = 4;
   double _moveSpeedByTime = 0;
-  double renderRatio = 0.5;
   bool forwardState = false,
       backState = false,
       leftState = false,

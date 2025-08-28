@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:flutter_gpu_demo/gpu/world_data.dart';
+import 'package:flutter_gpu_demo/main_page.dart';
 import 'package:flutter_gpu_demo/ui.dart';
 import 'package:flutter_gpu_demo/gpu/world.dart';
 import 'package:flutter_gpu_demo/world_ui.dart';
@@ -19,7 +20,7 @@ void main() async{
     DartPluginRegistrant.ensureInitialized();
   }
   hideNotificationBar();
-  await ensureInitialize();
+  await ensureInitialized();
   // var a=Chunk.calculateDirectionalVec(0,0,[-0.5,0.466,-0.94,-0.73]);
   runApp(fpsMonitor());
 }
@@ -37,13 +38,32 @@ Widget fpsMonitor(){
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  bool success=true;
+  MyApp({super.key}){
+    try{
+      ensureInitializedGpuResource();
+    }catch(ex){
+      success=false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
       title: 'FlutterCraft',
-      home: Scaffold(body: World()),
+      home: Scaffold(body: success?MainPage():failedWidget()),
+    );
+  }
+  Widget failedWidget(){
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('FlutterCraft Unavailable'),
+      ),
+      body: Center(
+        child: Text('You need to enable both [impeller] and [flutter gpu].'),
+      ),
     );
   }
 }

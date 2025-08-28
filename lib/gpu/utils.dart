@@ -345,7 +345,8 @@ class PhongMaterialBuffered{
 }
 class LightMaterialBuffered{
   final gpu.BufferView data;
-  LightMaterialBuffered(this.data);
+  final LightMaterial raw;
+  LightMaterialBuffered(this.data,this.raw);
   static LightMaterialBuffered from(LightMaterial material,gpu.HostBuffer hostBuffer){
     final list=<double>[
       ...material.direction.storage,0,
@@ -353,6 +354,6 @@ class LightMaterialBuffered{
       ...material.diffuse.storage,0,
       ...material.specular.storage,0,
     ];
-    return LightMaterialBuffered(hostBuffer.emplace(float32(list)));
+    return LightMaterialBuffered(hostBuffer.emplace(float32(list)),material);
   }
 }

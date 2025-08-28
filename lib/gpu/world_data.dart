@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_gpu_demo/config.dart';
 import 'package:flutter_gpu_demo/gpu/utils.dart';
 import 'package:vector_math/vector_math_64.dart';
+import 'package:vector_math/vector_math.dart' as vm;
 
 final chunkSize = 16;
 final strength = 10;
@@ -529,23 +530,89 @@ class BlinnPhongMaterial{
   );
 }
 class LightMaterial{
+  final String name;
   final Vector3 direction;
   final Vector3 ambient;
   final Vector3 diffuse;
   final Vector3 specular;
-  LightMaterial(this.direction, this.ambient, this.diffuse, this.specular);
+  final vm.Vector4 skyColor;
+  LightMaterial(this.direction, this.ambient, this.diffuse, this.specular,this.name,this.skyColor);
   static final afternoon = LightMaterial(
     Vector3(-0.3, -1.0, -0.2),   // 光方向：略往下照
     Vector3(0.7, 0.7, 0.6),      // 环境光：中等灰白
     Vector3(0.7, 0.7, 0.6),      // 漫反射：明亮白光
     Vector3(1.0, 1.0, 1.0),      // 高光：强白光
+    'afternoon',
+    vm.Vector4(0.53, 0.81, 0.92, 1.0), // 天空蓝
   );
   static final sunset = LightMaterial(
     Vector3(-0.2, -0.7, -0.3),   // 光方向：更平，接近地平线
-    Vector3(0.2, 0.15, 0.1),     // 环境光：微弱暖色
+    Vector3(0.4, 0.35, 0.3),     // 环境光：微弱暖色
     Vector3(0.9, 0.4, 0.2),      // 漫反射：橙红色
     Vector3(1.0, 0.5, 0.3),      // 高光：偏暖的亮光
+    'sunset',
+    vm.Vector4(0.98, 0.55, 0.35, 1.0), // 橙红天空
   );
+  static final morning = LightMaterial(
+    Vector3(-0.4, -0.8, -0.2),   // 光方向：稍微斜，从左上斜下照
+    Vector3(0.5, 0.55, 0.65),    // 环境光：淡蓝灰，冷调
+    Vector3(0.9, 0.85, 0.7),     // 漫反射：柔和暖金白
+    Vector3(1.0, 0.95, 0.8),     // 高光：暖白，不刺眼
+    'morning',
+    vm.Vector4(0.75, 0.85, 0.95, 1.0), // 清晨淡蓝天空
+  );
+  static final moonlight = LightMaterial(
+    Vector3(0.2, -1.0, -0.3),    // 光方向：从右上斜下，柔和
+    Vector3(0.2, 0.22, 0.3),     // 环境光：暗的蓝灰
+    Vector3(0.3, 0.35, 0.5),     // 漫反射：淡淡的冷蓝光
+    Vector3(0.6, 0.7, 0.9),      // 高光：清冷的偏蓝白
+    'moonlight',
+    vm.Vector4(0.05, 0.08, 0.15, 1.0), // 深蓝夜空
+  );
+  static final rainy = LightMaterial(
+    Vector3(0.0, -1.0, 0.0),      // 光方向：近乎垂直向下，但不重要（散射为主）
+    Vector3(0.4, 0.4, 0.45),      // 环境光：偏灰蓝
+    Vector3(0.5, 0.5, 0.55),      // 漫反射：柔和低饱和灰白
+    Vector3(0.6, 0.6, 0.65),      // 高光：不强烈，略灰
+    'rainy',
+    vm.Vector4(0.6, 0.65, 0.7, 1.0), // 天空：阴天灰蓝
+  );
+  static final bloodMoon = LightMaterial(
+    Vector3(0.3, -0.9, -0.3),     // 光方向：斜下，像月光
+    Vector3(0.1, 0.05, 0.05),     // 环境光：暗红
+    Vector3(0.6, 0.1, 0.1),       // 漫反射：红光
+    Vector3(0.9, 0.2, 0.2),       // 高光：血色亮光
+    'blood moon',
+    vm.Vector4(0.4, 0.05, 0.1, 1.0), // 天空：深红黑
+  );
+  static final apocalypse = LightMaterial(
+    Vector3(-0.2, -0.6, -0.2),    // 光方向：低角度，黄沙漫天
+    Vector3(0.4, 0.35, 0.2),      // 环境光：黄灰
+    Vector3(1.0, 0.8, 0.2),       // 漫反射：刺眼黄光
+    Vector3(1.0, 0.9, 0.5),       // 高光：耀眼白黄
+    'apocalypse',
+    vm.Vector4(0.9, 0.7, 0.3, 1.0),  // 天空：末日黄沙色
+  );
+  static final polarNight = LightMaterial(
+    Vector3(-0.5, -0.8, -0.2),    // 光方向：斜向
+    Vector3(0.05, 0.08, 0.15),    // 环境光：接近黑蓝
+    Vector3(0.2, 0.3, 0.5),       // 漫反射：冷蓝紫
+    Vector3(0.5, 0.7, 0.9),       // 高光：偏冷的亮蓝
+    'polar night',
+    vm.Vector4(0.1, 0.15, 0.25, 1.0),// 天空：深蓝黑
+  );
+  static final volcanic = LightMaterial(
+    Vector3(0.0, -0.7, -0.3),     // 光方向：低角度，像岩浆反射的光
+    Vector3(0.3, 0.15, 0.1),      // 环境光：暗红
+    Vector3(1.0, 0.3, 0.1),       // 漫反射：强烈的橙红
+    Vector3(1.0, 0.6, 0.2),       // 高光：炽烈橙黄
+    'volcanic',
+    vm.Vector4(0.9, 0.3, 0.1, 1.0),  // 天空：血红橙
+  );
+
+
+
+
 }
 
 class BlockData {

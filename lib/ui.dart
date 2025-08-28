@@ -209,3 +209,27 @@ class ControlMenu extends StatelessWidget {
     );
   }
 }
+
+class McButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final Widget? child;
+
+  const McButton({super.key, this.onPressed, this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 200,
+      child: OutlinedButton(
+        style: ButtonStyle(
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+          ),
+          padding: WidgetStateProperty.all(EdgeInsets.symmetric(vertical: 20)),
+        ),
+        onPressed: onPressed,
+        child: child,
+      ),
+    );
+  }
+}

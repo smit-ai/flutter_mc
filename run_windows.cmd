@@ -1,0 +1,1 @@
+flutter run -d windows --enable-impeller --enable-flutter-gpu
