@@ -64,4 +64,5 @@ double verticalRotate = -0.6;
 
 //ui
 bool displayDetail=true;
+double controlPaneButtonSize=70;
 

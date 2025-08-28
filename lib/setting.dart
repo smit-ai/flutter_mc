@@ -99,6 +99,17 @@ class _DisplaySettingState extends State<DisplaySetting> {
             });
           },
         ),
+        Text("Control Pane Button Size: ${controlPaneButtonSize.toStringAsFixed(2)}"),
+        Slider(
+          value: controlPaneButtonSize,
+          min: 20,
+          max: 150,
+          onChanged: (value) {
+            setState(() {
+              controlPaneButtonSize = value;
+            });
+          },
+        ),
       ],
     );
   }

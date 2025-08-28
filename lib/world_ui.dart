@@ -175,6 +175,7 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
       },
       onPointerDown: onPointerDown,
       onPointerMove: onPointerMove,
+      buttonSize: controlPaneButtonSize,
     );
     final renderSize =
         mediaQueryData.size * mediaQueryData.devicePixelRatio * renderRatio;
