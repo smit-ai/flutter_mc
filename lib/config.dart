@@ -1,10 +1,13 @@
 import 'package:flutter_gpu/gpu.dart';
 import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:package_info_plus/package_info_plus.dart';
 import 'gpu/utils.dart';
 
+late PackageInfo packageInfo;
 Future ensureInitialized()async{
   await imageAssets.load();
+  packageInfo = await PackageInfo.fromPlatform();
 }
 void ensureInitializedGpuResource(){
   _hostBuffer= gpu.gpuContext.createHostBuffer();

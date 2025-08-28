@@ -2,7 +2,10 @@
 
 A Minecraft-like game demo using Flutter GPU API.
 
-![](./screenshots/main.png)
+|different types of lighting / blocks|
+|:---:|
+|![](./screenshots/main.png)|
+
 
 **Note: need impeller backend** (windows unavailable now)
 
