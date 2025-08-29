@@ -6,5 +6,13 @@
   "BaseFragment": {
     "type": "fragment",
     "file": "shaders/base.frag"
+  },
+  "SunVertex": {
+    "type": "vertex",
+    "file": "shaders/sun.vert"
+  },
+  "SunFragment": {
+    "type": "fragment",
+    "file": "shaders/sun.frag"
   }
 }

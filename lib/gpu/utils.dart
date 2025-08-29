@@ -22,42 +22,46 @@ ByteData uint32(List<int> values) {
 ByteData float32Mat(Matrix4 matrix) {
   return Float32List.fromList(matrix.storage).buffer.asByteData();
 }
+
 ByteData float32Vec3(Vector3 vec3) {
   return Float32List.fromList(vec3.storage).buffer.asByteData();
 }
 
-void setColorBlend(gpu.RenderPass pass){
+void setColorBlend(gpu.RenderPass pass) {
   pass.setColorBlendEnable(true);
-  pass.setColorBlendEquation(gpu.ColorBlendEquation(
+  pass.setColorBlendEquation(
+    gpu.ColorBlendEquation(
       colorBlendOperation: gpu.BlendOperation.add,
       sourceColorBlendFactor: gpu.BlendFactor.one,
       destinationColorBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
       alphaBlendOperation: gpu.BlendOperation.add,
       sourceAlphaBlendFactor: gpu.BlendFactor.one,
-      destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha));
+      destinationAlphaBlendFactor: gpu.BlendFactor.oneMinusSourceAlpha,
+    ),
+  );
 }
 
-final cubeVertices=float32(<double>[
-  -1, -1, -1,  //
-  1, -1, -1,  //
-  1, 1, -1,  //
-  -1, 1, -1,  //
-  -1, -1, 1,  //
-  1, -1, 1,  //
-  1, 1, 1,  //
-  -1, 1, 1,  //
+final cubeVertices = float32(<double>[
+  -1, -1, -1, //
+  1, -1, -1, //
+  1, 1, -1, //
+  -1, 1, -1, //
+  -1, -1, 1, //
+  1, -1, 1, //
+  1, 1, 1, //
+  -1, 1, 1, //
 ]);
-final cubeVerticesWithTexCoords=float32(<double>[
-  -1, -1, -1, 0, 1,  //
-  1, -1, -1, 1, 1,  //
-  1, 1, -1, 1, 0,  //
-  -1, 1, -1, 0, 0,  //
-  -1, -1, 1, 0, 1,  //
-  1, -1, 1, 1, 1,  //
-  1, 1, 1, 1, 0,  //
-  -1, 1, 1, 0, 0,  //
+final cubeVerticesWithTexCoords = float32(<double>[
+  -1, -1, -1, 0, 1, //
+  1, -1, -1, 1, 1, //
+  1, 1, -1, 1, 0, //
+  -1, 1, -1, 0, 0, //
+  -1, -1, 1, 0, 1, //
+  1, -1, 1, 1, 1, //
+  1, 1, 1, 1, 0, //
+  -1, 1, 1, 0, 0, //
 ]);
-final cubeIndices=uint16(<int>[
+final cubeIndices = uint16(<int>[
   0, 1, 3, 3, 1, 2, //
   1, 5, 2, 2, 5, 6, //
   5, 4, 6, 6, 4, 7, //
@@ -67,73 +71,72 @@ final cubeIndices=uint16(<int>[
 ]);
 // 定义纹理图集UV分区常量（三等分）
 const double topUVStart = 0.0;
-const double topUVEnd = 1/3;
-const double sideUVStart = 1/3;
-const double sideUVEnd = 2/3;
-const double bottomUVStart = 2/3;
+const double topUVEnd = 1 / 3;
+const double sideUVStart = 1 / 3;
+const double sideUVEnd = 2 / 3;
+const double bottomUVStart = 2 / 3;
 const double bottomUVEnd = 1.0;
 
-const int itemsPerVertex=8;
+const int itemsPerVertex = 8;
 
-const double radius=0.5;
+const double radius = 0.5;
 // 草方块顶点数据列表
 // 每个顶点包含: x, y, z, 法线x, 法线y, 法线z, uvX, uvY
-final verticesPosZ=<double>[
+final verticesPosZ = <double>[
   // 前面（侧面纹理）+z
-  -radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 1.0,
-  -radius,  radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 0.0,
-  radius,  radius,  radius,  0.0,  0.0,  1.0,  sideUVEnd,   0.0,
-  radius,  radius,  radius,  0.0,  0.0,  1.0,  sideUVEnd,   0.0,
-  radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVEnd,   1.0,
-  -radius, -radius,  radius,  0.0,  0.0,  1.0,  sideUVStart, 1.0,
+  -radius, -radius, radius, 0.0, 0.0, 1.0, sideUVStart, 1.0,
+  -radius, radius, radius, 0.0, 0.0, 1.0, sideUVStart, 0.0,
+  radius, radius, radius, 0.0, 0.0, 1.0, sideUVEnd, 0.0,
+  radius, radius, radius, 0.0, 0.0, 1.0, sideUVEnd, 0.0,
+  radius, -radius, radius, 0.0, 0.0, 1.0, sideUVEnd, 1.0,
+  -radius, -radius, radius, 0.0, 0.0, 1.0, sideUVStart, 1.0,
 ];
-final verticesNegZ=<double>[
+final verticesNegZ = <double>[
   // 后面（侧面纹理）-z
-  -radius, -radius, -radius,  0.0,  0.0, -1.0,  sideUVStart, 1.0,
-  radius, -radius, -radius,  0.0,  0.0, -1.0,  sideUVEnd,   1.0,
-  radius,  radius, -radius,  0.0,  0.0, -1.0,  sideUVEnd,   0.0,
-  radius,  radius, -radius,  0.0,  0.0, -1.0,  sideUVEnd,   0.0,
-  -radius,  radius, -radius,  0.0,  0.0, -1.0,  sideUVStart, 0.0,
-  -radius, -radius, -radius,  0.0,  0.0, -1.0,  sideUVStart, 1.0,
+  -radius, -radius, -radius, 0.0, 0.0, -1.0, sideUVStart, 1.0,
+  radius, -radius, -radius, 0.0, 0.0, -1.0, sideUVEnd, 1.0,
+  radius, radius, -radius, 0.0, 0.0, -1.0, sideUVEnd, 0.0,
+  radius, radius, -radius, 0.0, 0.0, -1.0, sideUVEnd, 0.0,
+  -radius, radius, -radius, 0.0, 0.0, -1.0, sideUVStart, 0.0,
+  -radius, -radius, -radius, 0.0, 0.0, -1.0, sideUVStart, 1.0,
 ];
-final verticesNegX=<double>[
+final verticesNegX = <double>[
   // 左面（侧面纹理）-x
-  -radius,  radius,  radius, -1.0,  0.0,  0.0,  sideUVStart, 0.0,
-  -radius, -radius,  radius, -1.0,  0.0,  0.0,  sideUVStart, 1.0,
-  -radius, -radius, -radius, -1.0,  0.0,  0.0,  sideUVEnd,   1.0,
-  -radius, -radius, -radius, -1.0,  0.0,  0.0,  sideUVEnd,   1.0,
-  -radius,  radius, -radius, -1.0,  0.0,  0.0,  sideUVEnd,   0.0,
-  -radius,  radius,  radius, -1.0,  0.0,  0.0,  sideUVStart, 0.0,
-
+  -radius, radius, radius, -1.0, 0.0, 0.0, sideUVStart, 0.0,
+  -radius, -radius, radius, -1.0, 0.0, 0.0, sideUVStart, 1.0,
+  -radius, -radius, -radius, -1.0, 0.0, 0.0, sideUVEnd, 1.0,
+  -radius, -radius, -radius, -1.0, 0.0, 0.0, sideUVEnd, 1.0,
+  -radius, radius, -radius, -1.0, 0.0, 0.0, sideUVEnd, 0.0,
+  -radius, radius, radius, -1.0, 0.0, 0.0, sideUVStart, 0.0,
 ];
-final verticesPosX=<double>[
+final verticesPosX = <double>[
   // 右面（侧面纹理）+x
-  radius,  radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 0.0,
-  radius,  radius, -radius,  1.0,  0.0,  0.0,  sideUVEnd,   0.0,
-  radius, -radius, -radius,  1.0,  0.0,  0.0,  sideUVEnd,   1.0,
-  radius, -radius, -radius,  1.0,  0.0,  0.0,  sideUVEnd,   1.0,
-  radius, -radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 1.0,
-  radius,  radius,  radius,  1.0,  0.0,  0.0,  sideUVStart, 0.0,
+  radius, radius, radius, 1.0, 0.0, 0.0, sideUVStart, 0.0,
+  radius, radius, -radius, 1.0, 0.0, 0.0, sideUVEnd, 0.0,
+  radius, -radius, -radius, 1.0, 0.0, 0.0, sideUVEnd, 1.0,
+  radius, -radius, -radius, 1.0, 0.0, 0.0, sideUVEnd, 1.0,
+  radius, -radius, radius, 1.0, 0.0, 0.0, sideUVStart, 1.0,
+  radius, radius, radius, 1.0, 0.0, 0.0, sideUVStart, 0.0,
 ];
-final verticesPosY=<double>[
+final verticesPosY = <double>[
   // 顶部（草纹理）+y
-  radius,  radius,  -radius,  0.0,  1.0,  0.0,  topUVEnd, 0.0,
-  radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVEnd,   1.0,
-  -radius,  radius,  -radius,  0.0,  1.0,  0.0,  topUVStart,   0.0,
-  radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVEnd,   1.0,
-  -radius,  radius,  radius,  0.0,  1.0,  0.0,  topUVStart, 1.0,
-  -radius,  radius, -radius,  0.0,  1.0,  0.0,  topUVStart, 0.0,
+  radius, radius, -radius, 0.0, 1.0, 0.0, topUVEnd, 0.0,
+  radius, radius, radius, 0.0, 1.0, 0.0, topUVEnd, 1.0,
+  -radius, radius, -radius, 0.0, 1.0, 0.0, topUVStart, 0.0,
+  radius, radius, radius, 0.0, 1.0, 0.0, topUVEnd, 1.0,
+  -radius, radius, radius, 0.0, 1.0, 0.0, topUVStart, 1.0,
+  -radius, radius, -radius, 0.0, 1.0, 0.0, topUVStart, 0.0,
 ];
-final verticesNegY=<double>[
+final verticesNegY = <double>[
   // 底部（泥土纹理）-y
-  -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
-  -radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVStart, 1.0,
-  radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVEnd,   1.0,
-  radius, -radius,  radius,  0.0, -1.0,  0.0,  bottomUVEnd,   1.0,
-  radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVEnd,   0.0,
-  -radius, -radius, -radius,  0.0, -1.0,  0.0,  bottomUVStart, 0.0,
+  -radius, -radius, -radius, 0.0, -1.0, 0.0, bottomUVStart, 0.0,
+  -radius, -radius, radius, 0.0, -1.0, 0.0, bottomUVStart, 1.0,
+  radius, -radius, radius, 0.0, -1.0, 0.0, bottomUVEnd, 1.0,
+  radius, -radius, radius, 0.0, -1.0, 0.0, bottomUVEnd, 1.0,
+  radius, -radius, -radius, 0.0, -1.0, 0.0, bottomUVEnd, 0.0,
+  -radius, -radius, -radius, 0.0, -1.0, 0.0, bottomUVStart, 0.0,
 ];
-final blockVerticesFaces=[
+final blockVerticesFaces = [
   verticesNegX,
   verticesPosX,
   verticesNegY,
@@ -147,46 +150,52 @@ final List<double> blockVertices = [
   ...verticesNegX,
   ...verticesPosX,
   ...verticesPosY,
-  ...verticesNegY
+  ...verticesNegY,
 ];
-final List<int> oneFaceIndex=[0,1,2,3,4,5];
-final List<int> emptyFaceIndex=[];
-List<int> faceWithOffset(int offset){
-  return oneFaceIndex.map((e) => e+offset*6).toList();
+final List<int> oneFaceIndex = [0, 1, 2, 3, 4, 5];
+final List<int> emptyFaceIndex = [];
+List<int> faceWithOffset(int offset) {
+  return oneFaceIndex.map((e) => e + offset * 6).toList();
 }
-final zDirection=[faceWithOffset(1),emptyFaceIndex,faceWithOffset(0)];
-final xDirection=[faceWithOffset(2),emptyFaceIndex,faceWithOffset(3)];
-final yDirection=[faceWithOffset(5),emptyFaceIndex,faceWithOffset(4)];
-final entries=blockVertices.length/8;
 
-List<double> faceWithTranslation(List<double> face,int dx,int dy,int dz){
-  final entries=face.length/itemsPerVertex;
-  final l=List<double>.from(face,growable: false);
-  for(int row=0;row<entries;row++){
-    l[row*itemsPerVertex+0]+=dx;
-    l[row*itemsPerVertex+1]+=dy;
-    l[row*itemsPerVertex+2]+=dz;
+final zDirection = [faceWithOffset(1), emptyFaceIndex, faceWithOffset(0)];
+final xDirection = [faceWithOffset(2), emptyFaceIndex, faceWithOffset(3)];
+final yDirection = [faceWithOffset(5), emptyFaceIndex, faceWithOffset(4)];
+final entries = blockVertices.length / 8;
+
+List<double> faceWithTranslation(List<double> face, int dx, int dy, int dz) {
+  final entries = face.length / itemsPerVertex;
+  final l = List<double>.from(face, growable: false);
+  for (int row = 0; row < entries; row++) {
+    l[row * itemsPerVertex + 0] += dx;
+    l[row * itemsPerVertex + 1] += dy;
+    l[row * itemsPerVertex + 2] += dz;
   }
   return l;
 }
-List<double> getBlockVertices(double dx,double dy,double dz){
 
-  final vericesClone=List<double>.from(blockVertices);
-  for(int i=0;i<entries;i++){
-    vericesClone[i*itemsPerVertex+0]+=dx;
-    vericesClone[i*itemsPerVertex+1]+=dy;
-    vericesClone[i*itemsPerVertex+2]+=dz;
+List<double> getBlockVertices(double dx, double dy, double dz) {
+  final vericesClone = List<double>.from(blockVertices);
+  for (int i = 0; i < entries; i++) {
+    vericesClone[i * itemsPerVertex + 0] += dx;
+    vericesClone[i * itemsPerVertex + 1] += dy;
+    vericesClone[i * itemsPerVertex + 2] += dz;
   }
   return vericesClone;
 }
-final blockVerticesByte=float32(blockVertices);
-final double scale=0.5;
-final scaleMatrix=Matrix4.diagonal3(Vector3(scale,scale,scale));
+
+final blockVerticesByte = float32(blockVertices);
+final double scale = 0.5;
+final scaleMatrix = Matrix4.diagonal3(Vector3(scale, scale, scale));
 final upDirection = Vector3(0, 1, 0);
-Matrix4 translation(double dx,double dy,double dz){
-  return Matrix4.identity()..setEntry(0,3,dx)..setEntry(1,3,dy)..setEntry(2,3,dz);
+Matrix4 translation(double dx, double dy, double dz) {
+  return Matrix4.identity()
+    ..setEntry(0, 3, dx)
+    ..setEntry(1, 3, dy)
+    ..setEntry(2, 3, dz);
 }
-class BufferWithLength{
+
+class BufferWithLength {
   gpu.BufferView bufferView;
   int length;
   BufferWithLength(this.bufferView, this.length);
@@ -195,15 +204,15 @@ class BufferWithLength{
 class ImageProcessor {
   // 从本地资源加载PNG并获取像素数组
   static Future<Image> loadFromAssets(String assetPath) async {
-      // 加载资源文件
-      final ByteData data = await rootBundle.load(assetPath);
-      // 解码图片数据
-      final Uint8List bytes = data.buffer.asUint8List();
-      final completer = Completer<Image>();
-      decodeImageFromList(bytes, (image) {
-        completer.complete(image);
-      });
-      return await completer.future;
+    // 加载资源文件
+    final ByteData data = await rootBundle.load(assetPath);
+    // 解码图片数据
+    final Uint8List bytes = data.buffer.asUint8List();
+    final completer = Completer<Image>();
+    decodeImageFromList(bytes, (image) {
+      completer.complete(image);
+    });
+    return await completer.future;
   }
 
   // 将Image对象转换为像素数组(RGBA格式)
@@ -215,38 +224,49 @@ class ImageProcessor {
     return byteData!;
   }
 }
-class ImageData{
+
+class ImageData {
   final ByteData data;
   final int width;
   final int height;
   ImageData(this.data, this.width, this.height);
-  static Future<ImageData> fromImage(Image image)async{
-    return ImageData(await ImageProcessor.getPixelArray(image), image.width, image.height);
+  static Future<ImageData> fromImage(Image image) async {
+    return ImageData(
+      await ImageProcessor.getPixelArray(image),
+      image.width,
+      image.height,
+    );
   }
-  static Future<ImageData> fromAsset(String assetPath)async{
-    final image=await ImageProcessor.loadFromAssets(assetPath);
-    return ImageData(await ImageProcessor.getPixelArray(image), image.width, image.height);
+
+  static Future<ImageData> fromAsset(String assetPath) async {
+    final image = await ImageProcessor.loadFromAssets(assetPath);
+    return ImageData(
+      await ImageProcessor.getPixelArray(image),
+      image.width,
+      image.height,
+    );
   }
 }
-class ImageAssets{
+
+class ImageAssets {
   late ImageData mainImage;
   late ImageData grass;
   late ImageData log;
   late ImageData leaf;
   late ImageData water;
-  Future load()async{
-    mainImage=await ImageData.fromAsset('assets/main.png');
-    grass=await ImageData.fromAsset('assets/grass.png');
-    log=await ImageData.fromAsset('assets/log.png');
-    leaf=await ImageData.fromAsset('assets/leaf.png');
-    water=await ImageData.fromAsset('assets/water.png');
+  Future load() async {
+    mainImage = await ImageData.fromAsset('assets/main.png');
+    grass = await ImageData.fromAsset('assets/grass.png');
+    log = await ImageData.fromAsset('assets/log.png');
+    leaf = await ImageData.fromAsset('assets/leaf.png');
+    water = await ImageData.fromAsset('assets/water.png');
   }
 }
-final imageAssets=ImageAssets();
 
+final imageAssets = ImageAssets();
 
-String vecToString(Vector3 vec3){
-  const precision=1;
+String vecToString(Vector3 vec3) {
+  const precision = 1;
   return '(${vec3.x.toStringAsFixed(precision)},${vec3.y.toStringAsFixed(precision)},${vec3.z.toStringAsFixed(precision)})';
 }
 
@@ -255,57 +275,72 @@ bool frustumContainsSphere(Matrix4 viewProj, Vector3 center, double radius) {
   // 提取视锥体平面
   final List<Vector4> planes = [];
   // 左平面
-  planes.add(Vector4(
-    viewProj[3] + viewProj[0],
-    viewProj[7] + viewProj[4],
-    viewProj[11] + viewProj[8],
-    viewProj[15] + viewProj[12],
-  ));
+  planes.add(
+    Vector4(
+      viewProj[3] + viewProj[0],
+      viewProj[7] + viewProj[4],
+      viewProj[11] + viewProj[8],
+      viewProj[15] + viewProj[12],
+    ),
+  );
   // 右平面
-  planes.add(Vector4(
-    viewProj[3] - viewProj[0],
-    viewProj[7] - viewProj[4],
-    viewProj[11] - viewProj[8],
-    viewProj[15] - viewProj[12],
-  ));
+  planes.add(
+    Vector4(
+      viewProj[3] - viewProj[0],
+      viewProj[7] - viewProj[4],
+      viewProj[11] - viewProj[8],
+      viewProj[15] - viewProj[12],
+    ),
+  );
   // 下平面
-  planes.add(Vector4(
-    viewProj[3] + viewProj[1],
-    viewProj[7] + viewProj[5],
-    viewProj[11] + viewProj[9],
-    viewProj[15] + viewProj[13],
-  ));
+  planes.add(
+    Vector4(
+      viewProj[3] + viewProj[1],
+      viewProj[7] + viewProj[5],
+      viewProj[11] + viewProj[9],
+      viewProj[15] + viewProj[13],
+    ),
+  );
   // 上平面
-  planes.add(Vector4(
-    viewProj[3] - viewProj[1],
-    viewProj[7] - viewProj[5],
-    viewProj[11] - viewProj[9],
-    viewProj[15] - viewProj[13],
-  ));
+  planes.add(
+    Vector4(
+      viewProj[3] - viewProj[1],
+      viewProj[7] - viewProj[5],
+      viewProj[11] - viewProj[9],
+      viewProj[15] - viewProj[13],
+    ),
+  );
   // 近平面
-  planes.add(Vector4(
-    viewProj[3] + viewProj[2],
-    viewProj[7] + viewProj[6],
-    viewProj[11] + viewProj[10],
-    viewProj[15] + viewProj[14],
-  ));
+  planes.add(
+    Vector4(
+      viewProj[3] + viewProj[2],
+      viewProj[7] + viewProj[6],
+      viewProj[11] + viewProj[10],
+      viewProj[15] + viewProj[14],
+    ),
+  );
   // 远平面
-  planes.add(Vector4(
-    viewProj[3] - viewProj[2],
-    viewProj[7] - viewProj[6],
-    viewProj[11] - viewProj[10],
-    viewProj[15] - viewProj[14],
-  ));
+  planes.add(
+    Vector4(
+      viewProj[3] - viewProj[2],
+      viewProj[7] - viewProj[6],
+      viewProj[11] - viewProj[10],
+      viewProj[15] - viewProj[14],
+    ),
+  );
 
   // 归一化平面
   for (var plane in planes) {
-    final length = sqrt(plane.x*plane.x + plane.y*plane.y + plane.z*plane.z);
+    final length = sqrt(
+      plane.x * plane.x + plane.y * plane.y + plane.z * plane.z,
+    );
     plane /= length;
   }
 
   // 检查球是否在所有平面内部
   for (var plane in planes) {
-    final distance = plane.x*center.x + plane.y*center.y + plane.z*center.z + plane.w;
+    final distance =
+        plane.x * center.x + plane.y * center.y + plane.z * center.z + plane.w;
     if (distance < -radius) {
       return false; // 球在平面外部
     }
@@ -313,47 +348,125 @@ bool frustumContainsSphere(Matrix4 viewProj, Vector3 center, double radius) {
   return true;
 }
 
-class ChunkBufferView{
+class ChunkBufferView {
   BufferWithLength grass;
   BufferWithLength log;
   BufferWithLength leaf;
   BufferWithLength water;
-  ChunkBufferView({required this.grass, required this.log, required this.leaf,required this.water});
+  ChunkBufferView({
+    required this.grass,
+    required this.log,
+    required this.leaf,
+    required this.water,
+  });
 }
 
 ///issue: Unable to allocate a device buffer: ErrorInitializationFailed
-gpu.BufferView createDeviceBuffer(ByteData byteData){
-  final deviceBuffer= gpu.gpuContext.createDeviceBuffer(gpu.StorageMode.hostVisible,byteData.lengthInBytes);
+gpu.BufferView createDeviceBuffer(ByteData byteData) {
+  final deviceBuffer = gpu.gpuContext.createDeviceBuffer(
+    gpu.StorageMode.hostVisible,
+    byteData.lengthInBytes,
+  );
   deviceBuffer.overwrite(byteData);
   deviceBuffer.flush();
-  return gpu.BufferView(deviceBuffer, offsetInBytes: 0, lengthInBytes: byteData.lengthInBytes);
+  return gpu.BufferView(
+    deviceBuffer,
+    offsetInBytes: 0,
+    lengthInBytes: byteData.lengthInBytes,
+  );
 }
 
-
-class PhongMaterialBuffered{
+class PhongMaterialBuffered {
   final gpu.BufferView data;
   PhongMaterialBuffered(this.data);
-  static PhongMaterialBuffered from(BlinnPhongMaterial material,gpu.HostBuffer hostBuffer){
-    final list=<double>[
-      ...material.ambient.storage,0,
-      ...material.diffuse.storage,0,
-      ...material.specular.storage,0,
-      material.shininess,0,0,0
+  static PhongMaterialBuffered from(
+    BlinnPhongMaterial material,
+    gpu.HostBuffer hostBuffer,
+  ) {
+    final list = <double>[
+      ...material.ambient.storage,
+      0,
+      ...material.diffuse.storage,
+      0,
+      ...material.specular.storage,
+      0,
+      material.shininess,
+      0,
+      0,
+      0,
     ];
     return PhongMaterialBuffered(hostBuffer.emplace(float32(list)));
   }
 }
-class LightMaterialBuffered{
+
+class LightMaterialBuffered {
   final gpu.BufferView data;
   final LightMaterial raw;
-  LightMaterialBuffered(this.data,this.raw);
-  static LightMaterialBuffered from(LightMaterial material,gpu.HostBuffer hostBuffer){
-    final list=<double>[
-      ...material.direction.storage,0,
-      ...material.ambient.storage,0,
-      ...material.diffuse.storage,0,
-      ...material.specular.storage,0,
+  LightMaterialBuffered(this.data, this.raw);
+  static LightMaterialBuffered from(
+    LightMaterial material,
+    gpu.HostBuffer hostBuffer,
+  ) {
+    final list = <double>[
+      ...material.direction.storage,
+      0,
+      ...material.ambient.storage,
+      0,
+      ...material.diffuse.storage,
+      0,
+      ...material.specular.storage,
+      0,
     ];
-    return LightMaterialBuffered(hostBuffer.emplace(float32(list)),material);
+    return LightMaterialBuffered(hostBuffer.emplace(float32(list)), material);
   }
+}
+
+/// Given a Vector3, return two Vector3s orthogonal to it.
+(Vector3, Vector3) orthogonalComplement(Vector3 v) {
+  if (v.length == 0) {
+    throw ArgumentError("Input vector cannot be a zero vector");
+  }
+
+  // choose a vector that is not parallel to v
+  Vector3 a = (v.x.abs() < v.y.abs()) ? Vector3(1, 0, 0) : Vector3(0, 1, 0);
+
+  // the first orthogonal vector
+  Vector3 u = v.cross(a);
+  if (u.length == 0) {
+    // if a is parallel to v, choose another vector
+    a = Vector3(0, 0, 1);
+    u = v.cross(a);
+  }
+  u.normalize();
+
+  // the second orthogonal vector
+  Vector3 w = v.cross(u);
+  w.normalize();
+
+  return (u, w);
+}
+
+(List<double>,Vector3) calculateSunVertex(
+  Vector3 playerPosition,
+  Vector3 sunDirection,
+  double sunDistance,
+  double sunRadius,
+) {
+  final (u, w) = orthogonalComplement(sunDirection);
+  final center = playerPosition - sunDirection * sunDistance;
+  final du = u * sunRadius;
+  final dw = w * sunRadius;
+  final pp=(center + du + dw).storage;
+  final pn=(center + du - dw).storage;
+  final nn=(center - du - dw).storage;
+  final np=(center - du + dw).storage;
+  final vertices= <double>[
+    ...pp,
+    ...nn,
+    ...pn,
+    ...pp,
+    ...np,
+    ...nn,
+  ];
+  return (vertices,center);
 }

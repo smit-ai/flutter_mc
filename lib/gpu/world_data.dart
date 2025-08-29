@@ -691,6 +691,21 @@ class FogData {
   }
 }
 
+class SunData {
+  Vector3 color;
+  Vector3 center;
+  double edgeStart;
+  double edgeEnd;
+  SunData(this.color, this.center, this.edgeStart,this.edgeEnd);
+  List<double> toArray(){
+    return <double>[
+      ...color.storage,0,
+      ...center.storage,0,
+      edgeStart,edgeEnd,0,0
+    ];
+  }
+}
+
 class BlockData {
   BlockType type = BlockType.air;
 }

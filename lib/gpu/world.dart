@@ -12,8 +12,6 @@ import 'shaders.dart';
 import 'dart:ui' as ui;
 import 'dart:developer' as developer;
 
-
-
 class WorldRender extends CustomPainter {
   VoidCallback onTerrainGenerated;
   Vector3 cameraPosition = Vector3(0, 0, 0);
@@ -23,14 +21,14 @@ class WorldRender extends CustomPainter {
   MediaQueryData mediaQueryData;
 
   //resource
-  late gpu.RenderPipeline _pipeline;
+  late gpu.RenderPipeline _blockPipeline;
+  late gpu.RenderPipeline _sunPipeline;
+
   late gpu.Texture _grassTexture;
   late gpu.Texture _logTexture;
   late gpu.Texture _leafTexture;
   late gpu.Texture _waterTexture;
-  final samplerOptions=gpu.SamplerOptions(
-      mipFilter: gpu.MipFilter.linear,
-  );
+  final samplerOptions = gpu.SamplerOptions(mipFilter: gpu.MipFilter.linear);
   //buffer
   late gpu.HostBuffer _hostBuffer;
   late gpu.HostBuffer _transient;
@@ -42,6 +40,9 @@ class WorldRender extends CustomPainter {
   late gpu.UniformSlot _frameInfoSlot;
   late gpu.UniformSlot _texSlot;
   late gpu.UniformSlot _viewPosSlot;
+  //sun
+  late gpu.UniformSlot _sunFrameInfoSlot;
+  late gpu.UniformSlot _sunColorSlot;
   //lighting
   late gpu.UniformSlot _lightSlot;
   //material
@@ -58,170 +59,228 @@ class WorldRender extends CustomPainter {
   late double dpr;
 
   final ValueNotifier<int> notifier;
-  WorldRender(this.cameraPosition, this.horizonRotate, this.verticalRotate,
-      this.onTerrainGenerated, this.mediaQueryData, this.renderRatio,
-      this.notifier) :super(repaint: notifier) {
+  WorldRender(
+    this.cameraPosition,
+    this.horizonRotate,
+    this.verticalRotate,
+    this.onTerrainGenerated,
+    this.mediaQueryData,
+    this.renderRatio,
+    this.notifier,
+  ) : super(repaint: notifier) {
     dpr = mediaQueryData.devicePixelRatio * renderRatio;
     //shader
     final vertexShader = shaderLibrary["BaseVertex"]!;
     final fragmentShader = shaderLibrary["BaseFragment"]!;
+    final sunVertexShader = shaderLibrary["SunVertex"]!;
+    final sunFragmentShader = shaderLibrary["SunFragment"]!;
     //pipeline
-    _pipeline = gpu.gpuContext.createRenderPipeline(
+    _blockPipeline = gpu.gpuContext.createRenderPipeline(
       vertexShader,
       fragmentShader,
     );
+    _sunPipeline = gpu.gpuContext.createRenderPipeline(
+      sunVertexShader,
+      sunFragmentShader,
+    );
     //uniform
-    _frameInfoSlot = _pipeline.vertexShader.getUniformSlot('FrameInfo');
-    _texSlot = _pipeline.fragmentShader.getUniformSlot('tex');
-    _viewPosSlot = _pipeline.fragmentShader.getUniformSlot('CameraBlock');
-    _lightSlot = _pipeline.fragmentShader.getUniformSlot('LightBlock');
-    _materialSlot = _pipeline.fragmentShader.getUniformSlot('MaterialBlock');
-    _fogSlot = _pipeline.fragmentShader.getUniformSlot('FogBlock');
+    _frameInfoSlot = _blockPipeline.vertexShader.getUniformSlot('FrameInfo');
+    _texSlot = _blockPipeline.fragmentShader.getUniformSlot('tex');
+    _viewPosSlot = _blockPipeline.fragmentShader.getUniformSlot('CameraBlock');
+    _lightSlot = _blockPipeline.fragmentShader.getUniformSlot('LightBlock');
+    _materialSlot = _blockPipeline.fragmentShader.getUniformSlot(
+      'MaterialBlock',
+    );
+    _fogSlot = _blockPipeline.fragmentShader.getUniformSlot('FogBlock');
+    //sun
+    _sunFrameInfoSlot = _sunPipeline.vertexShader.getUniformSlot('FrameInfo');
+    _sunColorSlot = _sunPipeline.fragmentShader.getUniformSlot('SunBlock');
     //texture
-    final grassImg=imageAssets.grass;
+    final grassImg = imageAssets.grass;
     _grassTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible, grassImg.width, grassImg.height,
-        enableShaderReadUsage: true
+      gpu.StorageMode.hostVisible,
+      grassImg.width,
+      grassImg.height,
+      enableShaderReadUsage: true,
     );
     _grassTexture.overwrite(grassImg.data);
-    final logImg=imageAssets.log;
+    final logImg = imageAssets.log;
     _logTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible, logImg.width, logImg.height,
-        enableShaderReadUsage: true
+      gpu.StorageMode.hostVisible,
+      logImg.width,
+      logImg.height,
+      enableShaderReadUsage: true,
     );
     _logTexture.overwrite(logImg.data);
-    final leafImg=imageAssets.leaf;
+    final leafImg = imageAssets.leaf;
     _leafTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible, leafImg.width, leafImg.height,
-        enableShaderReadUsage: true
+      gpu.StorageMode.hostVisible,
+      leafImg.width,
+      leafImg.height,
+      enableShaderReadUsage: true,
     );
     _leafTexture.overwrite(leafImg.data);
-    final waterImg=imageAssets.water;
+    final waterImg = imageAssets.water;
     _waterTexture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible, waterImg.width, waterImg.height,
-        enableShaderReadUsage: true
+      gpu.StorageMode.hostVisible,
+      waterImg.width,
+      waterImg.height,
+      enableShaderReadUsage: true,
     );
     _waterTexture.overwrite(waterImg.data);
     //buffer
     _hostBuffer = gpu.gpuContext.createHostBuffer();
     _transient = gpu.gpuContext.createHostBuffer();
     //material
-    _grassMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.grass,_hostBuffer);
-    _logMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.log,_hostBuffer);
-    _leafMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.leaf,_hostBuffer);
-    _waterMaterial=PhongMaterialBuffered.from(BlinnPhongMaterial.water,_hostBuffer);
+    _grassMaterial = PhongMaterialBuffered.from(
+      BlinnPhongMaterial.grass,
+      _hostBuffer,
+    );
+    _logMaterial = PhongMaterialBuffered.from(
+      BlinnPhongMaterial.log,
+      _hostBuffer,
+    );
+    _leafMaterial = PhongMaterialBuffered.from(
+      BlinnPhongMaterial.leaf,
+      _hostBuffer,
+    );
+    _waterMaterial = PhongMaterialBuffered.from(
+      BlinnPhongMaterial.water,
+      _hostBuffer,
+    );
   }
-  void setLightingMaterial(gpu.RenderPass pass,LightMaterialBuffered material){
+  void setLightingMaterial(
+    gpu.RenderPass pass,
+    LightMaterialBuffered material,
+  ) {
     pass.bindUniform(_lightSlot, material.data);
   }
-  void setMaterial(gpu.RenderPass pass,PhongMaterialBuffered material){
+
+  void setMaterial(gpu.RenderPass pass, PhongMaterialBuffered material) {
     pass.bindUniform(_materialSlot, material.data);
   }
-  ChunkBufferView? getChunkFaceBuffer(ChunkPosition position){
+
+  ChunkBufferView? getChunkFaceBuffer(ChunkPosition position) {
     //if it's cached, return it
-    final chunk= chunkManager.chunks[position]!;
-    final res=chunk.chunkBufferView;
-    if(res!=null){
+    final chunk = chunkManager.chunks[position]!;
+    final res = chunk.chunkBufferView;
+    if (res != null) {
       return res;
     }
-    final buffer=_calculateChunkBuffer(chunk);
-    if(buffer!=null){
-      chunk.chunkBufferView=buffer;
+    final buffer = _calculateChunkBuffer(chunk);
+    if (buffer != null) {
+      chunk.chunkBufferView = buffer;
     }
     return buffer;
   }
-  void _buildFogBuffer(){
-    final far=((viewDistance)*chunkSize);
-    final fogData=FogData(
-        selectedLighting.raw.skyColor,
-        far*fogStart,
-        far*fogEnd,
-        fogHeightCompression
+
+  void _buildFogBuffer() {
+    final far = ((viewDistance) * chunkSize);
+    final fogData = FogData(
+      selectedLighting.raw.skyColor,
+      far * fogStart,
+      far * fogEnd,
+      fogHeightCompression,
     );
-    _fogBufferView=_hostBuffer.emplace(float32(fogData.toArray()));
+    _fogBufferView = _hostBuffer.emplace(float32(fogData.toArray()));
   }
-  ChunkBufferView? _calculateChunkBuffer(Chunk chunk){
-    if(chunk.chunkData==null){
+
+  ChunkBufferView? _calculateChunkBuffer(Chunk chunk) {
+    if (chunk.chunkData == null) {
       return null;
     }
-    if(!chunkManager.isChunkWarpAvailable(chunk.position)){
+    if (!chunkManager.isChunkWarpAvailable(chunk.position)) {
       return null;
     }
-    final chunkData=chunk.chunkData!;
-    final log=<double>[];
-    final leaf=<double>[];
-    final grass=<double>[];
-    final water=<double>[];
-    for(int x=0;x<chunkSize;x++){
-      for(int z=0;z<chunkSize;z++){
-        for(int y=0;y<maxHeight;y++){
-          final block=chunkData.dataXzy[x][z][y];
-          final blockType=block.type;
-          if(blockType==BlockType.air){
+    final chunkData = chunk.chunkData!;
+    final log = <double>[];
+    final leaf = <double>[];
+    final grass = <double>[];
+    final water = <double>[];
+    for (int x = 0; x < chunkSize; x++) {
+      for (int z = 0; z < chunkSize; z++) {
+        for (int y = 0; y < maxHeight; y++) {
+          final block = chunkData.dataXzy[x][z][y];
+          final blockType = block.type;
+          if (blockType == BlockType.air) {
             continue;
           }
-          final faces=chunk.allVisibleFaces(x, y, z);
-          if(faces.isEmpty){
+          final faces = chunk.allVisibleFaces(x, y, z);
+          if (faces.isEmpty) {
             continue;
           }
-          if(blockType==BlockType.log){
+          if (blockType == BlockType.log) {
             log.addAll(faces);
-          }else if(blockType==BlockType.leaf){
+          } else if (blockType == BlockType.leaf) {
             leaf.addAll(faces);
-          }else if(blockType==BlockType.grass){
+          } else if (blockType == BlockType.grass) {
             grass.addAll(faces);
-          }else if(blockType==BlockType.water){
+          } else if (blockType == BlockType.water) {
             water.addAll(faces);
           }
         }
       }
     }
-    final res=ChunkBufferView(
-      grass: BufferWithLength((_hostBuffer.emplace(float32(grass))),(grass.length/itemsPerVertex).toInt()),
-      log: BufferWithLength((_hostBuffer.emplace(float32(log))),(log.length/itemsPerVertex).toInt()),
-      leaf: BufferWithLength((_hostBuffer.emplace(float32(leaf))),(leaf.length/itemsPerVertex).toInt()),
-      water: BufferWithLength((_hostBuffer.emplace(float32(water))),(water.length/itemsPerVertex).toInt()),
+    final res = ChunkBufferView(
+      grass: BufferWithLength(
+        (_hostBuffer.emplace(float32(grass))),
+        (grass.length / itemsPerVertex).toInt(),
+      ),
+      log: BufferWithLength(
+        (_hostBuffer.emplace(float32(log))),
+        (log.length / itemsPerVertex).toInt(),
+      ),
+      leaf: BufferWithLength(
+        (_hostBuffer.emplace(float32(leaf))),
+        (leaf.length / itemsPerVertex).toInt(),
+      ),
+      water: BufferWithLength(
+        (_hostBuffer.emplace(float32(water))),
+        (water.length / itemsPerVertex).toInt(),
+      ),
     );
     return res;
   }
-  final chunkRadius = sqrt(chunkSize*chunkSize /2.0+maxHeight*maxHeight/4.0)+itemsPerVertex; // 区块对角线一半
+
+  final chunkRadius =
+      sqrt(chunkSize * chunkSize / 2.0 + maxHeight * maxHeight / 4.0) +
+      itemsPerVertex; // 区块对角线一半
   bool isChunkVisible(ChunkPosition pos, Matrix4 viewProj) {
     final chunkCenter = Vector3(
-      (pos.x * chunkSize + chunkSize/2).toDouble(),
-      maxHeight/2,
-      (pos.z * chunkSize + chunkSize/2).toDouble(),
+      (pos.x * chunkSize + chunkSize / 2).toDouble(),
+      maxHeight / 2,
+      (pos.z * chunkSize + chunkSize / 2).toDouble(),
     );
 
     return frustumContainsSphere(viewProj, chunkCenter, chunkRadius);
   }
-  void configRenderPass(gpu.RenderPass pass){
-    pass.bindPipeline(_pipeline);
+
+  void configRenderPass(gpu.RenderPass pass) {
     pass.setDepthWriteEnable(true);
     pass.setDepthCompareOperation(gpu.CompareFunction.less);
-    
-    //cull
-    pass.setCullMode(gpu.CullMode.backFace);
     setColorBlend(pass);
   }
+
   ui.Image? image;
   gpu.RenderTarget? _renderTarget;
   late gpu.Texture _renderTexture;
   late gpu.Texture _depthTexture;
   @override
-  void paint(Canvas canvas, Size size){
-    try{
+  void paint(Canvas canvas, Size size) {
+    try {
       _paint(size);
-    }catch(e,stackTrace){
+    } catch (e, stackTrace) {
       if (kDebugMode) {
         developer.log("paint error!:$e\n$stackTrace");
       }
     }
-    if(image!=null){
-      canvas.scale(1/dpr, 1/dpr);
+    if (image != null) {
+      canvas.scale(1 / dpr, 1 / dpr);
       canvas.drawImage(image!, Offset.zero, Paint());
     }
   }
-  void buildRenderTarget(int width,int height){
+
+  void buildRenderTarget(int width, int height) {
     //texture
     _renderTexture = gpu.gpuContext.createTexture(
       gpu.StorageMode.devicePrivate,
@@ -243,12 +302,13 @@ class WorldRender extends CustomPainter {
     );
     onlyBuildRenderTarget();
   }
-  void onlyBuildRenderTarget(){
+
+  void onlyBuildRenderTarget() {
     //target
     _renderTarget = gpu.RenderTarget.singleColor(
       gpu.ColorAttachment(
-          texture: _renderTexture,
-          clearValue: selectedLighting.raw.skyColor
+        texture: _renderTexture,
+        clearValue: selectedLighting.raw.skyColor,
       ),
       depthStencilAttachment: gpu.DepthStencilAttachment(
         texture: _depthTexture,
@@ -258,37 +318,35 @@ class WorldRender extends CustomPainter {
   }
 
   void _paint(Size size) {
-    final width = (size.width*dpr).toInt();
-    final height = (size.height*dpr).toInt();
+    final width = (size.width * dpr).toInt();
+    final height = (size.height * dpr).toInt();
     // 仅在尺寸变化时更新透视矩阵,target
-    if (_perspectiveMatrix == null || _renderTarget==null || size != _lastSize) {
+    if (_perspectiveMatrix == null ||
+        _renderTarget == null ||
+        size != _lastSize) {
       _perspectiveMatrix = makePerspectiveMatrix(
         60 * (3.141592653589793 / 180.0),
         size.aspectRatio,
         0.01,
-        1000
+        1000,
       );
       _lastSize = size;
       buildRenderTarget(width, height);
-    }else if(rebuildTargetFlag){
+    } else if (rebuildTargetFlag) {
       onlyBuildRenderTarget();
     }
-    rebuildTargetFlag=false;
+    rebuildTargetFlag = false;
     //build fog
-    if(_fogBufferView==null || rebuildFogBufferFlag){
+    if (_fogBufferView == null || rebuildFogBufferFlag) {
       _buildFogBuffer();
     }
-    rebuildFogBufferFlag=false;
-
-
+    rebuildFogBufferFlag = false;
 
     //command buffer
     final commandBuffer = gpu.gpuContext.createCommandBuffer();
     //pass
     final pass = commandBuffer.createRenderPass(_renderTarget!);
     configRenderPass(pass);
-
-
 
 
     final persp = _perspectiveMatrix!;
@@ -298,45 +356,100 @@ class WorldRender extends CustomPainter {
       -sin(horizonRotate) * cos(verticalRotate),
     );
 
-    final view = makeViewMatrix(cameraPosition, focusDirection+cameraPosition, upDirection);
-    final pvs=persp*view;
-    final mvp = _transient.emplace(float32Mat(pvs,),);
+    final view = makeViewMatrix(
+      cameraPosition,
+      focusDirection + cameraPosition,
+      upDirection,
+    );
+    final pvs = persp * view;
+    final mvp = _transient.emplace(float32Mat(pvs));
+    //----------- sun -----------------
+    //use sun pipeline
+    pass.bindPipeline(_sunPipeline);
+    pass.setCullMode(gpu.CullMode.none);
+    final double sunRadius = 20;
+    final double sunDistance = 100;
+    final (sunVertices, sunCenter) = calculateSunVertex(
+      cameraPosition,
+      selectedLighting.raw.direction,
+      sunDistance,
+      sunRadius,
+    );
+    final sunData = SunData(
+      selectedLighting.raw.specular,
+      sunCenter,
+      sunRadius*0.8,
+      sunRadius,
+    );
+    //bind vertex
+    //uniform
+    pass.bindVertexBuffer(_transient.emplace(float32(sunVertices)), 6);
+    pass.bindUniform(_sunFrameInfoSlot, mvp);
+    pass.bindUniform(
+      _sunColorSlot,
+      _transient.emplace(float32(sunData.toArray())),
+    );
+    pass.draw();
+    //---------------- sun end ----------------------
+
+
+
+    //use block pipeline
+    pass.bindPipeline(_blockPipeline);
     //uniform
     pass.bindUniform(_frameInfoSlot, mvp);
-    final viewPos=_transient.emplace(float32(cameraPosition.storage));
+    final viewPos = _transient.emplace(float32(cameraPosition.storage));
     pass.bindUniform(_viewPosSlot, viewPos);
     setLightingMaterial(pass, selectedLighting);
     //bind fog
     pass.bindUniform(_fogSlot, _fogBufferView!);
 
     //calc chunk
-    final int x=((cameraPosition.x+radius)/chunkSize).floor();
-    final int z=((cameraPosition.z+radius)/chunkSize).floor();
+    final int x = ((cameraPosition.x + radius) / chunkSize).floor();
+    final int z = ((cameraPosition.z + radius) / chunkSize).floor();
     //leaves
-    List<BufferWithLength> leaves=[];
+    List<BufferWithLength> leaves = [];
     //water
-    List<BufferWithLength> water=[];
-    final chunkViewRadiusSquared=pow(viewDistance+0.5,2);
-    for(int chunkDistanceX=-viewDistance;chunkDistanceX<=viewDistance;chunkDistanceX++){
-      final zRange=sqrt(chunkViewRadiusSquared-chunkDistanceX*chunkDistanceX).floor();
-      for(int chunkDistanceZ=-zRange;chunkDistanceZ<=zRange;chunkDistanceZ++){
-        final chunkPosition=ChunkPosition(x+chunkDistanceX, z+chunkDistanceZ);
-        if(!isChunkVisible(chunkPosition, pvs)){
+    List<BufferWithLength> water = [];
+    //cull
+    pass.setCullMode(gpu.CullMode.backFace);
+    final chunkViewRadiusSquared = pow(viewDistance + 0.5, 2);
+    for (
+      int chunkDistanceX = -viewDistance;
+      chunkDistanceX <= viewDistance;
+      chunkDistanceX++
+    ) {
+      final zRange = sqrt(
+        chunkViewRadiusSquared - chunkDistanceX * chunkDistanceX,
+      ).floor();
+      for (
+        int chunkDistanceZ = -zRange;
+        chunkDistanceZ <= zRange;
+        chunkDistanceZ++
+      ) {
+        final chunkPosition = ChunkPosition(
+          x + chunkDistanceX,
+          z + chunkDistanceZ,
+        );
+        if (!isChunkVisible(chunkPosition, pvs)) {
           continue;
         }
-        final chunk=chunkManager.chunks[chunkPosition];
-        if(chunk!=null){
-          chunkManager.ensureChunkWarp(chunkPosition,onComplete: onTerrainGenerated);
-          final buffer=getChunkFaceBuffer(chunkPosition);
-          if(buffer!=null){
+        final chunk = chunkManager.chunks[chunkPosition];
+        if (chunk != null) {
+          chunkManager.ensureChunkWarp(
+            chunkPosition,
+            onComplete: onTerrainGenerated,
+          );
+          final buffer = getChunkFaceBuffer(chunkPosition);
+          if (buffer != null) {
             //grass
             setMaterial(pass, _grassMaterial);
-            pass.bindTexture(_texSlot, _grassTexture,sampler: samplerOptions);
+            pass.bindTexture(_texSlot, _grassTexture, sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.grass.bufferView, buffer.grass.length);
             pass.draw();
             //log
             setMaterial(pass, _logMaterial);
-            pass.bindTexture(_texSlot, _logTexture,sampler: samplerOptions);
+            pass.bindTexture(_texSlot, _logTexture, sampler: samplerOptions);
             pass.bindVertexBuffer(buffer.log.bufferView, buffer.log.length);
             pass.draw();
             //leaf
@@ -344,44 +457,45 @@ class WorldRender extends CustomPainter {
             //water
             water.add(buffer.water);
           }
-        }else{
+        } else {
           //request
-          chunkManager.requestGenerateChunk(chunkPosition,onComplete: onTerrainGenerated);
+          chunkManager.requestGenerateChunk(
+            chunkPosition,
+            onComplete: onTerrainGenerated,
+          );
         }
       }
     }
     pass.setCullMode(gpu.CullMode.none);
     //draw water
     setMaterial(pass, _waterMaterial);
-    pass.bindTexture(_texSlot, _waterTexture,sampler: samplerOptions);
-    for(final water in water){
+    pass.bindTexture(_texSlot, _waterTexture, sampler: samplerOptions);
+    for (final water in water) {
       pass.bindVertexBuffer(water.bufferView, water.length);
       pass.draw();
     }
 
     //draw leaves
     setMaterial(pass, _leafMaterial);
-    pass.bindTexture(_texSlot, _leafTexture,sampler: samplerOptions);
-    for(final leaf in leaves){
+    pass.bindTexture(_texSlot, _leafTexture, sampler: samplerOptions);
+    for (final leaf in leaves) {
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);
       pass.draw();
     }
     pass.setCullMode(gpu.CullMode.backFace);
 
-    commandBuffer.submit(completionCallback: (state){
-      _transient.reset();
-      final old = image;
-      image = _renderTexture.asImage();
-      old?.dispose();
-    });
+    commandBuffer.submit(
+      completionCallback: (state) {
+        _transient.reset();
+        final old = image;
+        image = _renderTexture.asImage();
+        old?.dispose();
+      },
+    );
   }
-
-
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) {
     return true;
   }
 }
-
-
