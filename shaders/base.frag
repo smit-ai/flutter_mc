@@ -55,7 +55,7 @@ void main() {
     vec4 result = vec4(ambient + diffuse + specular,textColor4.a);
 
     //fog
-    toCamera.z=toCamera.z*fog.range.z;
+    toCamera.y=toCamera.y*fog.range.z;
     float fogIntensity = smoothstep(fog.range.x, fog.range.y, length(toCamera));
     vec4 finalColor = mix(result, fog.color, fogIntensity);
 
