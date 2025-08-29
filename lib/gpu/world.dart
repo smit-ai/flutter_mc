@@ -132,7 +132,12 @@ class WorldRender extends CustomPainter {
   }
   void _buildFogBuffer(){
     final far=(viewDistance*chunkSize);
-    final fogData=FogData(selectedLighting.raw.skyColor,far*fogStart,far*fogEnd);
+    final fogData=FogData(
+        selectedLighting.raw.skyColor,
+        far*fogStart,
+        far*fogEnd,
+        fogHeightCompression
+    );
     _fogBufferView=_hostBuffer.emplace(float32(fogData.toArray()));
   }
   ChunkBufferView? _calculateChunkBuffer(Chunk chunk){

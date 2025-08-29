@@ -664,11 +664,12 @@ class FogData {
   vm.Vector4 color;
   double start;
   double end;
-  FogData(this.color, this.start, this.end);
+  double heightCompression;//make the vertical direction fog more sparse
+  FogData(this.color, this.start, this.end,this.heightCompression);
   List<double> toArray(){
     return <double>[
       ...color.storage,
-      start,end,0,0
+      start,end,heightCompression,0
     ];
   }
 }

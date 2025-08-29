@@ -27,7 +27,7 @@ class _SettingPageState extends State<SettingPage>
   final _pages = <Widget>[
     SingleChildScrollView(child: GraphicsSetting()),
     DisplaySetting(),
-    About()
+    About(),
   ];
 
   @override
@@ -65,7 +65,9 @@ class _SettingPageState extends State<SettingPage>
     );
   }
 }
+
 final double columnSpacing = 10;
+
 class DisplaySetting extends StatefulWidget {
   const DisplaySetting({super.key});
 
@@ -76,40 +78,44 @@ class DisplaySetting extends StatefulWidget {
 class _DisplaySettingState extends State<DisplaySetting> {
   @override
   Widget build(BuildContext context) {
+    final ratioSlider = Slider(
+      value: renderRatio,
+      min: 0.01,
+      onChanged: (value) {
+        setState(() {
+          renderRatio = value;
+        });
+      },
+    );
+    final detailSwitch = Switch(
+      value: displayDetail,
+      onChanged: (value) {
+        setState(() {
+          displayDetail = value;
+        });
+      },
+    );
+    final buttonSizeSlider = Slider(
+      value: controlPaneButtonSize,
+      min: 20,
+      max: 150,
+      onChanged: (value) {
+        setState(() {
+          controlPaneButtonSize = value;
+        });
+      },
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: columnSpacing,
       children: [
         Text("Render Ratio: ${renderRatio.toStringAsFixed(2)}"),
-        Slider(
-          value: renderRatio,
-          min: 0.01,
-          onChanged: (value) {
-            setState(() {
-              renderRatio = value;
-            });
-          },
+        ratioSlider,
+        row(Text("Display Detail: $displayDetail"), detailSwitch),
+        Text(
+          "Control Pane Button Size: ${controlPaneButtonSize.toStringAsFixed(2)}",
         ),
-        Text("Display Detail: $displayDetail"),
-        Switch(
-          value: displayDetail,
-          onChanged: (value) {
-            setState(() {
-              displayDetail = value;
-            });
-          },
-        ),
-        Text("Control Pane Button Size: ${controlPaneButtonSize.toStringAsFixed(2)}"),
-        Slider(
-          value: controlPaneButtonSize,
-          min: 20,
-          max: 150,
-          onChanged: (value) {
-            setState(() {
-              controlPaneButtonSize = value;
-            });
-          },
-        ),
+        buttonSizeSlider,
       ],
     );
   }
@@ -123,20 +129,19 @@ class GraphicsSetting extends StatefulWidget {
 }
 
 class _GraphicsSettingState extends State<GraphicsSetting> {
-  void _stateChanged(){
-    setState(() {
-
-    });
+  void _stateChanged() {
+    setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
-    final lightingModels=Wrap(
+    final lightingModels = Wrap(
       spacing: 10,
       runSpacing: 5,
       children: [
         LightingSetButton(morning, _stateChanged),
-        LightingSetButton(afternoon,_stateChanged),
-        LightingSetButton(sunset,_stateChanged),
+        LightingSetButton(afternoon, _stateChanged),
+        LightingSetButton(sunset, _stateChanged),
         LightingSetButton(moonlight, _stateChanged),
         LightingSetButton(rainy, _stateChanged),
         LightingSetButton(bloodMoon, _stateChanged),
@@ -148,29 +153,42 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         LightingSetButton(cyberpunk, _stateChanged),
         LightingSetButton(voidLight, _stateChanged),
         LightingSetButton(eldritch, _stateChanged),
-        LightingSetButton(nether, _stateChanged)
+        LightingSetButton(nether, _stateChanged),
       ],
     );
-    final viewDistanceSlider=Slider(
-        value: viewDistance.toDouble(),
-        min: 0,
-        max: 32,
-        onChanged: (value){
-      setState(() {
-        setViewDistance(value.round());
-      });
-    });
-    final fogSlider=RangeSlider(
-        values: RangeValues(fogStart, fogEnd),
-        min: 0,
-        max: 2,
-        onChanged: (value){
-          setState(() {
-            fogStart=value.start;
-            fogEnd=value.end;
-            rebuildFogBufferFlag=true;
-          });
+    final viewDistanceSlider = Slider(
+      value: viewDistance.toDouble(),
+      min: 0,
+      max: 32,
+      onChanged: (value) {
+        setState(() {
+          setViewDistance(value.round());
         });
+      },
+    );
+    final fogSlider = RangeSlider(
+      values: RangeValues(fogStart, fogEnd),
+      min: 0,
+      max: 2,
+      onChanged: (value) {
+        setState(() {
+          fogStart = value.start;
+          fogEnd = value.end;
+          rebuildFogBufferFlag = true;
+        });
+      },
+    );
+    final fogHeightCompressionSlider = Slider(
+      value: fogHeightCompression,
+      min: 0,
+      max: 1,
+      onChanged: (value) {
+        setState(() {
+          fogHeightCompression = value;
+          rebuildFogBufferFlag = true;
+        });
+      },
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: columnSpacing,
@@ -179,23 +197,37 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         lightingModels,
         Text("View Distance: $viewDistance"),
         viewDistanceSlider,
-        Text("Fog: ${fogStart.toStringAsFixed(2)} - ${fogEnd.toStringAsFixed(2)}"),
+        Text(
+          "Fog: ${fogStart.toStringAsFixed(2)} - ${fogEnd.toStringAsFixed(2)} of view distance",
+        ),
         fogSlider,
+        Text(
+          "Fog Height Compression: ${fogHeightCompression.toStringAsFixed(2)} (make vertical fog more sparse)",
+        ),
+        fogHeightCompressionSlider,
       ],
     );
   }
 }
+
+Widget row(Widget a, Widget b) {
+  return Row(spacing: 10, children: [a, b]);
+}
+
 class LightingSetButton extends StatelessWidget {
   final LightMaterialBuffered material;
   final VoidCallback stateChanged;
-  const LightingSetButton(this.material,this.stateChanged,{super.key});
+
+  const LightingSetButton(this.material, this.stateChanged, {super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(onPressed: (){
-      useLighting(material);
-      stateChanged();
-    }, child: Text(material.raw.name));
+    return ElevatedButton(
+      onPressed: () {
+        useLighting(material);
+        stateChanged();
+      },
+      child: Text(material.raw.name),
+    );
   }
 }
-

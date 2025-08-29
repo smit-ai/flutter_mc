@@ -19,7 +19,7 @@ layout(binding = 2) uniform CameraBlock {
 layout(binding = 3) uniform sampler2D tex;
 layout(binding = 4) uniform FogBlock{
     vec4 color;
-    vec4 range;//x is start, y is end
+    vec4 range;//x is start, y is end, z is height compression
 } fog;
 
 in vec2 v_texture_coords;
@@ -55,6 +55,7 @@ void main() {
     vec4 result = vec4(ambient + diffuse + specular,textColor4.a);
 
     //fog
+    toCamera.z=toCamera.z*fog.range.z;
     float fogIntensity = smoothstep(fog.range.x, fog.range.y, length(toCamera));
     vec4 finalColor = mix(result, fog.color, fogIntensity);
 

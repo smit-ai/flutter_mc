@@ -70,6 +70,7 @@ void setViewDistance(int distance){
 bool rebuildFogBufferFlag=false;// fog,lighting,view-distance need rebuild fog buffer
 double fogStart=0.9;
 double fogEnd=1.1;
+double fogHeightCompression=0.2;
 
 //player
 Vector3 cameraPosition = Vector3(2, levelHeight * 1.5, 2);
