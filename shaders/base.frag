@@ -4,7 +4,7 @@ layout(binding = 0)uniform MaterialBlock {
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
-    vec4 shininess;//actual shininess is shininess.x
+    vec4 shininess;//actual shininess is shininess.x , shininess.y is specularIntensity decay index
 } material;
 
 layout(binding = 1) uniform LightBlock {
@@ -54,7 +54,7 @@ void main() {
 
     // 计算高光强度并影响alpha通道
     float specularIntensity = dot(specular, vec3(0.299, 0.587, 0.114)); // 将高光颜色转换为灰度强度
-    float alphaWithSpecular = max(textColor4.a , specularIntensity); // 将高光强度添加到alpha值
+    float alphaWithSpecular = textColor4.a + pow(specularIntensity,material.shininess.y); // 将高光强度添加到alpha值
     alphaWithSpecular = clamp(alphaWithSpecular, 0.0, 1.0); // 确保alpha值在有效范围内
 
     vec4 result = vec4(ambient + diffuse + specular,alphaWithSpecular);
