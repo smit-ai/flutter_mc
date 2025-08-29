@@ -542,9 +542,9 @@ class BlinnPhongMaterial{
   );
   static final water=BlinnPhongMaterial(
     Vector3(0.0, 0.0, 0.05),   // 环境光：淡蓝色
-    Vector3(0.1, 0.2, 0.5),    // 漫反射：水的蓝色
+    Vector3(0.2, 0.3, 0.6),    // 漫反射：水的蓝色
     Vector3(0.5, 0.5, 0.5),    // 高光：水面有较强镜面反射
-    32.0,                      // 高光锐利
+    48.0,                      // 高光锐利
   );
 }
 class LightMaterial{
