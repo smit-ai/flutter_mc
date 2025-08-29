@@ -544,7 +544,7 @@ class LightMaterial{
     Vector3(0.7, 0.7, 0.6),      // 漫反射：明亮白光
     Vector3(1.0, 1.0, 1.0),      // 高光：强白光
     'afternoon',
-    vm.Vector4(0.53, 0.81, 0.92, 1.0), // 天空蓝
+    vm.Vector4(0.75, 0.85, 1.0, 1.0), // 天空蓝
   );
   static final sunset = LightMaterial(
     Vector3(-0.2, -0.7, -0.3),   // 光方向：更平，接近地平线
