@@ -31,7 +31,7 @@ void ensureInitializedGpuResource(){
 }
 final ChunkManager chunkManager=ChunkManager();
 
-double renderRatio=0.5;
+double renderRatio=1;
 
 //lighting
 bool rebuildTargetFlag=false;
@@ -59,7 +59,7 @@ void useLighting(LightMaterialBuffered lighting){
   rebuildTargetFlag=true;
   rebuildFogBufferFlag=true;
 }
-int _viewDistance=4;
+int _viewDistance=5;
 int get viewDistance{
   return _viewDistance;
 }
@@ -79,11 +79,11 @@ double horizonRotate = 2.4;
 double verticalRotate = -0.6;
 
 //ui
-bool displayDetail=true;
+bool displayDetail=false;
 double controlPaneButtonSize=70;
 
 //sun
-double sunRadius=130;
+double sunRadius=100;
 double sunDistance=800;
 double sunBlurStart=0.8;
 double sunBlurEnd=1;
