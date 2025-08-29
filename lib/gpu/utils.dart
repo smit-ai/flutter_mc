@@ -453,7 +453,7 @@ class LightMaterialBuffered {
   double sunRadius,
 ) {
   final (u, w) = orthogonalComplement(sunDirection);
-  final center = playerPosition - sunDirection * sunDistance;
+  final center = playerPosition - sunDirection.normalized() * sunDistance;
   final du = u * sunRadius;
   final dw = w * sunRadius;
   final pp=(center + du + dw).storage;

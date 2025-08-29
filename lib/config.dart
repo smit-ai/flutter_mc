@@ -81,3 +81,9 @@ double verticalRotate = -0.6;
 bool displayDetail=true;
 double controlPaneButtonSize=70;
 
+//sun
+double sunRadius=130;
+double sunDistance=800;
+double sunBlurStart=0.8;
+double sunBlurEnd=1;
+

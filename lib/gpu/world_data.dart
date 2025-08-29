@@ -564,7 +564,7 @@ class LightMaterial{
     vm.Vector4(0.75, 0.85, 1.0, 1.0), // 天空蓝
   );
   static final sunset = LightMaterial(
-    Vector3(-0.2, -0.7, -0.3),   // 光方向：更平，接近地平线
+    Vector3(-0.3, -0.1, -0.3),   // 光方向：更平，接近地平线
     Vector3(0.4, 0.35, 0.3),     // 环境光：微弱暖色
     Vector3(0.9, 0.4, 0.2),      // 漫反射：橙红色
     Vector3(1.0, 0.5, 0.3),      // 高光：偏暖的亮光

@@ -367,8 +367,6 @@ class WorldRender extends CustomPainter {
     //use sun pipeline
     pass.bindPipeline(_sunPipeline);
     pass.setCullMode(gpu.CullMode.none);
-    final double sunRadius = 20;
-    final double sunDistance = 100;
     final (sunVertices, sunCenter) = calculateSunVertex(
       cameraPosition,
       selectedLighting.raw.direction,
@@ -378,8 +376,8 @@ class WorldRender extends CustomPainter {
     final sunData = SunData(
       selectedLighting.raw.specular,
       sunCenter,
-      sunRadius*0.8,
-      sunRadius,
+      sunRadius*sunBlurStart,
+      sunRadius*sunBlurEnd,
     );
     //bind vertex
     //uniform

@@ -189,6 +189,37 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         });
       },
     );
+    final sunRadiusSlider = Slider(
+      value: sunRadius,
+      min: 0,
+      max: 300,
+      onChanged: (value) {
+        setState(() {
+          sunRadius = value;
+        });
+      },
+    );
+    final sunBlurRangeSlider=RangeSlider(
+      values: RangeValues(sunBlurStart,sunBlurEnd),
+      min: 0,
+      max: 2,
+      onChanged: (value) {
+        setState(() {
+          sunBlurStart=value.start;
+          sunBlurEnd=value.end;
+        });
+      },
+    );
+    final sunDistanceSlider=Slider(
+      value: sunDistance,
+      min: 0,
+      max: 1000,
+      onChanged: (value) {
+        setState(() {
+          sunDistance = value;
+        });
+      },
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: columnSpacing,
@@ -205,6 +236,12 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
           "Fog Height Compression: ${fogHeightCompression.toStringAsFixed(2)} (make vertical fog more sparse)",
         ),
         fogHeightCompressionSlider,
+        Text("Sun Radius: ${sunRadius.toStringAsFixed(2)}"),
+        sunRadiusSlider,
+        Text("Sun Blur Range: ${sunBlurStart.toStringAsFixed(2)} - ${sunBlurEnd.toStringAsFixed(2)}"),
+        sunBlurRangeSlider,
+        Text("Sun Distance: ${sunDistance.toStringAsFixed(2)}"),
+        sunDistanceSlider,
       ],
     );
   }
