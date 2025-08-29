@@ -52,7 +52,12 @@ void main() {
     float spec = pow(max(dot(norm, halfwayDir), 0.0), shine);
     vec3 specular = light.specular * spec * material.specular;
 
-    vec4 result = vec4(ambient + diffuse + specular,textColor4.a);
+    // 计算高光强度并影响alpha通道
+    float specularIntensity = dot(specular, vec3(0.299, 0.587, 0.114)); // 将高光颜色转换为灰度强度
+    float alphaWithSpecular = max(textColor4.a , specularIntensity); // 将高光强度添加到alpha值
+    alphaWithSpecular = clamp(alphaWithSpecular, 0.0, 1.0); // 确保alpha值在有效范围内
+
+    vec4 result = vec4(ambient + diffuse + specular,alphaWithSpecular);
 
     //fog
     toCamera.y=toCamera.y*fog.range.z;
