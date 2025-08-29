@@ -358,7 +358,7 @@ class WorldRender extends CustomPainter {
       pass.bindVertexBuffer(water.bufferView, water.length);
       pass.draw();
     }
-    pass.setCullMode(gpu.CullMode.backFace);
+
     //draw leaves
     setMaterial(pass, _leafMaterial);
     pass.bindTexture(_texSlot, _leafTexture,sampler: samplerOptions);
@@ -366,6 +366,7 @@ class WorldRender extends CustomPainter {
       pass.bindVertexBuffer(leaf.bufferView, leaf.length);
       pass.draw();
     }
+    pass.setCullMode(gpu.CullMode.backFace);
 
     commandBuffer.submit(completionCallback: (state){
       _transient.reset();
