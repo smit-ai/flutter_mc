@@ -16,6 +16,9 @@ A Minecraft-like game demo using Flutter GPU API.
 - face culling
 - blinn-phong lighting
 
+# known issue
+
+[FlutterGPU OOM issue on Android](https://github.com/flutter/flutter/issues/172068) was recently fixed but not yet available on the beta channel.
 
 # dev blog
 
