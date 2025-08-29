@@ -61,22 +61,39 @@ class ChunkManager {
   Map<ChunkPosition, double> directionalVec = {};
   Map<ChunkPosition, double> primaryDirectionalVec = {};
 
-  double getDirectionalVec(ChunkPosition position) {
-    if (directionalVec.containsKey(position)) {
-      return directionalVec[position]!;
+  static double _getVecCommon(ChunkPosition position,Map<ChunkPosition,double> source){
+    if (source.containsKey(position)) {
+      return source[position]!;
+    }
+    if(random.nextDouble()<0.5){
+      //从众
+      double nearV=0;
+      int count=0;
+      final around=position.getAround();
+      for(final p in around){
+        final near=source[p];
+        if(near!=null){
+          nearV+=near;
+          count++;
+        }
+      }
+      if(count>0){
+        final v= random.nextDouble()*sign(nearV);
+        source[position] = v;
+        return v;
+      }
+      //rollback to random
     }
     final v = random.nextDouble() * 2 - 1; //(-1,1)
-    directionalVec[position] = v;
+    source[position] = v;
     return v;
+  }
+  double getDirectionalVec(ChunkPosition position) {
+    return _getVecCommon(position, directionalVec);
   }
 
   double getPrimaryDirectionalVec(ChunkPosition position) {
-    if (primaryDirectionalVec.containsKey(position)) {
-      return primaryDirectionalVec[position]!;
-    }
-    final v = random.nextDouble() * 2 - 1; //(-1,1)
-    primaryDirectionalVec[position] = v;
-    return v;
+    return _getVecCommon(position, primaryDirectionalVec);
   }
 
   ChunkManager() {
