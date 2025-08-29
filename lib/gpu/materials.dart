@@ -67,7 +67,7 @@ class LightMaterial{
     vm.Vector4(0.75, 0.85, 0.95, 1.0), // 清晨淡蓝天空
   );
   static final moonlight = LightMaterial(
-    Vector3(0.2, -1.0, -0.3),    // 光方向：从右上斜下，柔和
+    Vector3(0.2, -0.1, -0.3),    // 光方向：从右上斜下，柔和
     Vector3(0.2, 0.22, 0.3),     // 环境光：暗的蓝灰
     Vector3(0.3, 0.35, 0.5),     // 漫反射：淡淡的冷蓝光
     Vector3(0.6, 0.7, 0.9),      // 高光：清冷的偏蓝白
@@ -75,7 +75,7 @@ class LightMaterial{
     vm.Vector4(0.05, 0.08, 0.15, 1.0), // 深蓝夜空
   );
   static final rainy = LightMaterial(
-    Vector3(0.0, -1.0, 0.0),      // 光方向：近乎垂直向下，但不重要（散射为主）
+    Vector3(-0.1, -1.0, -0.1),      // 光方向：近乎垂直向下，但不重要（散射为主）
     Vector3(0.4, 0.4, 0.45),      // 环境光：偏灰蓝
     Vector3(0.5, 0.5, 0.55),      // 漫反射：柔和低饱和灰白
     Vector3(0.6, 0.6, 0.65),      // 高光：不强烈，略灰
@@ -83,7 +83,7 @@ class LightMaterial{
     vm.Vector4(0.6, 0.65, 0.7, 1.0), // 天空：阴天灰蓝
   );
   static final bloodMoon = LightMaterial(
-    Vector3(0.3, -0.9, -0.3),     // 光方向：斜下，像月光
+    Vector3(0.3, -0.5, -0.3),     // 光方向：斜下，像月光
     Vector3(0.1, 0.05, 0.05),     // 环境光：暗红
     Vector3(0.6, 0.1, 0.1),       // 漫反射：红光
     Vector3(0.9, 0.2, 0.2),       // 高光：血色亮光
@@ -91,7 +91,7 @@ class LightMaterial{
     vm.Vector4(0.4, 0.05, 0.1, 1.0), // 天空：深红黑
   );
   static final apocalypse = LightMaterial(
-    Vector3(-0.2, -0.6, -0.2),    // 光方向：低角度，黄沙漫天
+    Vector3(-0.2, -0.4, -0.2),    // 光方向：低角度，黄沙漫天
     Vector3(0.4, 0.35, 0.2),      // 环境光：黄灰
     Vector3(1.0, 0.8, 0.2),       // 漫反射：刺眼黄光
     Vector3(1.0, 0.9, 0.5),       // 高光：耀眼白黄
@@ -99,7 +99,7 @@ class LightMaterial{
     vm.Vector4(0.9, 0.7, 0.3, 1.0),  // 天空：末日黄沙色
   );
   static final polarNight = LightMaterial(
-    Vector3(-0.5, -0.8, -0.2),    // 光方向：斜向
+    Vector3(-0.5, -0.2, -0.2),    // 光方向：斜向
     Vector3(0.05, 0.08, 0.15),    // 环境光：接近黑蓝
     Vector3(0.2, 0.3, 0.5),       // 漫反射：冷蓝紫
     Vector3(0.5, 0.7, 0.9),       // 高光：偏冷的亮蓝
@@ -131,7 +131,7 @@ class LightMaterial{
     vm.Vector4(0.2, 0.05, 0.3, 1.0),// 天空：紫黑霓虹
   );
   static final nebula = LightMaterial(
-    Vector3(-0.5, -0.5, -0.2),
+    Vector3(-0.5, -0.2, -0.2),
     Vector3(0.1, 0.1, 0.2),       // 环境光：冷蓝
     Vector3(0.4, 0.2, 0.6),       // 漫反射：紫蓝
     Vector3(1.0, 0.6, 0.9),       // 高光：粉紫白
@@ -139,7 +139,7 @@ class LightMaterial{
     vm.Vector4(0.3, 0.15, 0.4, 1.0), // 天空：梦幻紫蓝
   );
   static final radioactive = LightMaterial(
-    Vector3(-0.2, -0.7, -0.5),
+    Vector3(-0.2, -0.1, -0.5),
     Vector3(0.05, 0.1, 0.05),     // 环境光：暗绿
     Vector3(0.3, 0.8, 0.3),       // 漫反射：诡异荧光绿
     Vector3(0.6, 1.0, 0.6),       // 高光：强烈的毒绿
@@ -155,13 +155,38 @@ class LightMaterial{
     vm.Vector4(0.1, 0.2, 0.15, 1.0), // 天空：阴冷病绿
   );
   static final nether = LightMaterial(
-    Vector3(0.0, -1.0, 0.0),
-    Vector3(-0.1, -0.1, -0.1),  // 环境光：负光，反直觉
+    Vector3(-0.1, -1.0, -0.1),
+    Vector3(0, -0.1, -0.1),  // 环境光：负光，反直觉
     Vector3(0.2, 0.0, 0.3),     // 漫反射：幽暗紫黑
     Vector3(0.9, 0.0, 0.0),     // 高光：猩红血光
     'nether',
     vm.Vector4(0.05, 0.0, 0.1, 1.0), // 天空：深紫黑
   );
+  static final neutronStar = LightMaterial(
+    Vector3(-0.1, -1.0, -0.3),       // 光方向：高角度，强烈直射
+    Vector3(0.8, 0.85, 1),         // 环境光：明亮冷蓝
+    Vector3(1, 1, 1.2),         // 漫反射：接近白蓝
+    Vector3(1.2, 1.3, 1.5),          // 高光：极亮，超现实的冷白光
+    'neutron star',
+    vm.Vector4(0.7, 0.8, 1.0, 1.0),     // 天空：冰冷的淡蓝白
+  );
+  static final blackHole = LightMaterial(
+    Vector3(0.0, -0.3, -1.0),       // 光方向：来自前方低角度，环状吸积盘
+    Vector3(0.02, 0.02, 0.05),      // 环境光：极暗蓝黑
+    Vector3(0.4, 0.2, 0.6),         // 漫反射：紫蓝辐射
+    Vector3(1.5, 1.2, 0.9),         // 高光：极亮（吸积盘耀斑）
+    'black hole',
+    vm.Vector4(0.05, 0.05, 0.1, 1.0),  // 天空：深蓝黑（接近虚无）
+  );
+  static final biohazardOutbreak = LightMaterial(
+    Vector3(0.0, -1.0, -0.1),        // 光方向：正上方压下来，像刺眼的警报灯
+    Vector3(0.1, 0.05, 0.05),        // 环境光：暗红，像血雾弥漫
+    Vector3(0.8, 0.2, 0.1),          // 漫反射：强烈血色
+    Vector3(0.9, 0.95, 0.9),         // 高光：冷白，制造刺眼对比
+    'biohazard',
+    vm.Vector4(0.3, 0.05, 0.05, 1.0),   // 天空：深红，带点黑雾感
+  );
+
 }
 
 class FogData {

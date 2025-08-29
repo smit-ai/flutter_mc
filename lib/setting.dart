@@ -156,6 +156,9 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         LightingSetButton(voidLight, _stateChanged),
         LightingSetButton(eldritch, _stateChanged),
         LightingSetButton(nether, _stateChanged),
+        LightingSetButton(neutronStar, _stateChanged),
+        LightingSetButton(blackHole, _stateChanged),
+        LightingSetButton(biohazardOutbreak, _stateChanged),
       ],
     );
     final viewDistanceSlider = Slider(

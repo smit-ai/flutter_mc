@@ -412,7 +412,7 @@ class WorldRender extends CustomPainter {
     List<BufferWithLength> water = [];
     //cull
     pass.setCullMode(gpu.CullMode.backFace);
-    final chunkViewRadiusSquared = pow(viewDistance + 0.5, 2);
+    final chunkViewRadiusSquared = pow(viewDistance + 1, 2);
     for (
       int chunkDistanceX = -viewDistance;
       chunkDistanceX <= viewDistance;

@@ -28,6 +28,9 @@ void ensureInitializedGpuResource(){
   voidLight=LightMaterialBuffered.from(LightMaterial.voidLight,_hostBuffer);
   eldritch=LightMaterialBuffered.from(LightMaterial.eldritch,_hostBuffer);
   nether=LightMaterialBuffered.from(LightMaterial.nether,_hostBuffer);
+  neutronStar=LightMaterialBuffered.from(LightMaterial.neutronStar,_hostBuffer);
+  blackHole=LightMaterialBuffered.from(LightMaterial.blackHole,_hostBuffer);
+  biohazardOutbreak=LightMaterialBuffered.from(LightMaterial.biohazardOutbreak,_hostBuffer);
 }
 final ChunkManager chunkManager=ChunkManager();
 
@@ -50,7 +53,9 @@ late LightMaterialBuffered cyberpunk;
 late LightMaterialBuffered voidLight;
 late LightMaterialBuffered eldritch;
 late LightMaterialBuffered nether;
-
+late LightMaterialBuffered neutronStar;
+late LightMaterialBuffered blackHole;
+late LightMaterialBuffered biohazardOutbreak;
 
 late HostBuffer _hostBuffer;
 LightMaterialBuffered selectedLighting=afternoon;
