@@ -20,6 +20,8 @@ A Minecraft-like game demo using Flutter GPU API.
 
 [FlutterGPU OOM issue on Android](https://github.com/flutter/flutter/issues/172068) was recently fixed but not yet available on the beta channel.
 
+tree leaves is covered by tree leaves
+
 # dev blog
 
 https://blog.57u.tech/2025/08/26/flutter-gpu-minecraft/
