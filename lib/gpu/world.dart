@@ -467,21 +467,30 @@ class WorldRender extends CustomPainter {
     }
     pass.setCullMode(gpu.CullMode.none);
     //draw water
-    setMaterial(pass, _waterMaterial);
-    pass.bindTexture(_texSlot, _waterTexture, sampler: samplerOptions);
-    for (final water in water) {
-      pass.bindVertexBuffer(water.bufferView, water.length);
-      pass.draw();
+    void drawWater(){
+      setMaterial(pass, _waterMaterial);
+      pass.bindTexture(_texSlot, _waterTexture, sampler: samplerOptions);
+      for (final water in water) {
+        pass.bindVertexBuffer(water.bufferView, water.length);
+        pass.draw();
+      }
     }
-
     //draw leaves
-    setMaterial(pass, _leafMaterial);
-    pass.bindTexture(_texSlot, _leafTexture, sampler: samplerOptions);
-    for (final leaf in leaves) {
-      pass.bindVertexBuffer(leaf.bufferView, leaf.length);
-      pass.draw();
+    void drawLeaves(){
+      setMaterial(pass, _leafMaterial);
+      pass.bindTexture(_texSlot, _leafTexture, sampler: samplerOptions);
+      for (final leaf in leaves) {
+        pass.bindVertexBuffer(leaf.bufferView, leaf.length);
+        pass.draw();
+      }
     }
-    pass.setCullMode(gpu.CullMode.backFace);
+    if(cameraPosition.y<waterLevel){
+      drawLeaves();
+      drawWater();
+    }else{
+      drawWater();
+      drawLeaves();
+    }
 
     commandBuffer.submit(
       completionCallback: (state) {
