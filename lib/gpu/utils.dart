@@ -376,50 +376,7 @@ gpu.BufferView createDeviceBuffer(ByteData byteData) {
   );
 }
 
-class PhongMaterialBuffered {
-  final gpu.BufferView data;
-  PhongMaterialBuffered(this.data);
-  static PhongMaterialBuffered from(
-    BlinnPhongMaterial material,
-    gpu.HostBuffer hostBuffer,
-  ) {
-    final list = <double>[
-      ...material.ambient.storage,
-      0,
-      ...material.diffuse.storage,
-      0,
-      ...material.specular.storage,
-      0,
-      material.shininess,
-      0,
-      0,
-      0,
-    ];
-    return PhongMaterialBuffered(hostBuffer.emplace(float32(list)));
-  }
-}
 
-class LightMaterialBuffered {
-  final gpu.BufferView data;
-  final LightMaterial raw;
-  LightMaterialBuffered(this.data, this.raw);
-  static LightMaterialBuffered from(
-    LightMaterial material,
-    gpu.HostBuffer hostBuffer,
-  ) {
-    final list = <double>[
-      ...material.direction.storage,
-      0,
-      ...material.ambient.storage,
-      0,
-      ...material.diffuse.storage,
-      0,
-      ...material.specular.storage,
-      0,
-    ];
-    return LightMaterialBuffered(hostBuffer.emplace(float32(list)), material);
-  }
-}
 
 /// Given a Vector3, return two Vector3s orthogonal to it.
 (Vector3, Vector3) orthogonalComplement(Vector3 v) {

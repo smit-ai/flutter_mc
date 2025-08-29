@@ -8,6 +8,7 @@ import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:vector_math/vector_math_64.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'materials.dart';
 import 'shaders.dart';
 import 'dart:ui' as ui;
 import 'dart:developer' as developer;

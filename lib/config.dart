@@ -2,6 +2,7 @@ import 'package:flutter_gpu/gpu.dart';
 import 'package:flutter_gpu_demo/gpu/world_data.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
 import 'package:package_info_plus/package_info_plus.dart';
+import 'gpu/materials.dart';
 import 'gpu/utils.dart';
 import 'package:vector_math/vector_math_64.dart';
 

@@ -3,6 +3,8 @@ import 'package:flutter_gpu_demo/about.dart';
 import 'package:flutter_gpu_demo/config.dart';
 import 'package:flutter_gpu_demo/gpu/utils.dart';
 
+import 'gpu/materials.dart';
+
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
 
