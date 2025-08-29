@@ -131,7 +131,7 @@ class WorldRender extends CustomPainter {
     return buffer;
   }
   void _buildFogBuffer(){
-    final far=(viewDistance*chunkSize);
+    final far=((viewDistance+0.5)*chunkSize);
     final fogData=FogData(
         selectedLighting.raw.skyColor,
         far*fogStart,
