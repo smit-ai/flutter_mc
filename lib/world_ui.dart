@@ -19,7 +19,6 @@ class World extends StatefulWidget {
 }
 
 class _WorldState extends State<World> with TickerProviderStateMixin {
-  double moveSpeed = 4;
   double _moveSpeedByTime = 0;
   bool joyStickMoveState = false,
       upState = false,
@@ -91,7 +90,7 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
   }
 
   Offset lastPosition = Offset.zero;
-  final double rotateSpeed = 0.01;
+
 
   void onPointerMove(PointerMoveEvent event) {
     final dx = event.position.dx - lastPosition.dx;
