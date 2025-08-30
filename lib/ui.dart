@@ -11,7 +11,7 @@ class ButtonLike extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withAlpha(100),
+        color: Colors.grey.withAlpha(60),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Center(child: child,),
@@ -235,7 +235,7 @@ class _JoystickState extends State<Joystick> {
     super.initState();
     _center = Offset(widget.radius, widget.radius);
   }
-
+  final double _stickRadius = 35;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -272,19 +272,19 @@ class _JoystickState extends State<Joystick> {
         width: widget.radius * 2,
         height: widget.radius * 2,
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3), // 半透明圆形区域
+          color: Colors.black.withAlpha(40), // 半透明圆形区域
           shape: BoxShape.circle,
         ),
         child: Stack(
           children: [
             Positioned(
-              left: _center.dx + _stickPosition.dx - 25,
-              top: _center.dy + _stickPosition.dy - 25,
+              left: _center.dx + _stickPosition.dx - _stickRadius/2,
+              top: _center.dy + _stickPosition.dy - _stickRadius/2,
               child: Container(
-                width: 50,
-                height: 50,
+                width: _stickRadius,
+                height: _stickRadius,
                 decoration: BoxDecoration(
-                  color: Colors.blue.withAlpha(128), // 半透明小圆
+                  color: Colors.grey.withAlpha(80), // 半透明小圆
                   shape: BoxShape.circle,
                 ),
               ),
