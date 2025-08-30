@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'config.dart';
+import '../config.dart';
 
 class About extends StatelessWidget {
   const About({super.key});

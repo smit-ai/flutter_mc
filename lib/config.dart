@@ -72,6 +72,9 @@ void setViewDistance(int distance){
   _viewDistance=distance;
   rebuildFogBufferFlag=true;
 }
+
+double fov=60;
+
 //fog
 bool rebuildFogBufferFlag=false;// fog,lighting,view-distance need rebuild fog buffer
 double fogStart=0.9;
@@ -85,7 +88,12 @@ double verticalRotate = -0.6;
 
 //ui
 bool displayDetail=false;
-double controlPaneButtonSize=70;
+double controlPaneButtonSize=50;
+
+
+//control
+double rotateSpeed = 0.01;
+double moveSpeed = 6;
 
 //sun
 double sunRadius=100;

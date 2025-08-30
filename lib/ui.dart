@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -9,7 +11,7 @@ class ButtonLike extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withAlpha(100),
+        color: Colors.grey.withAlpha(60),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Center(child: child,),
@@ -20,10 +22,8 @@ class ButtonLike extends StatelessWidget {
 
 class ControlPane extends StatelessWidget {
   final double buttonSize;
-  final void Function(bool) onForward;
-  final void Function(bool) onBack;
-  final void Function(bool) onLeft;
-  final void Function(bool) onRight;
+  final void Function(double,double) onJoystickMove;
+  final void Function() onJoyStickRelease;
   final void Function(bool) onUp;
   final void Function(bool) onDown;
   final void Function(PointerDownEvent) onPointerDown;
@@ -32,23 +32,21 @@ class ControlPane extends StatelessWidget {
   const ControlPane({
     super.key,
     this.buttonSize = 70,
-    required this.onForward,
-    required this.onBack,
-    required this.onLeft,
-    required this.onRight,
     required this.onUp,
     required this.onDown,
     required this.onPointerDown,
     required this.onPointerMove,
+    required this.onJoystickMove,
+    required this.onJoyStickRelease,
   });
 
   Widget generateButton(void Function(bool) onPressed, IconData icon) {
     final btn=ButtonLike(child: Icon(icon,size: 30,));
     return GestureDetector(
-      onTapDown: (event) => onPressed(true),
-      onTapMove: (event)=> onPressed(true),
-      onTapUp: (event) => onPressed(false),
-      onTapCancel: () => onPressed(false),
+      onPanDown: (event) => onPressed(true),
+      onPanUpdate: (event)=> onPressed(true),
+      onPanEnd: (event) => onPressed(false),
+      onPanCancel: () => onPressed(false),
       child: SizedBox(
           width: buttonSize,
           height: buttonSize,
@@ -67,33 +65,13 @@ class ControlPane extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    final empty = SizedBox(width: buttonSize, height: buttonSize);
-    final forward = generateButton(onForward, Icons.arrow_drop_up_sharp);
-    final back = generateButton(onBack, Icons.arrow_drop_down_sharp);
-    final left = generateButton(onLeft, Icons.arrow_left);
-    final right = generateButton(onRight, Icons.arrow_right);
+    final leftPaneSize = buttonSize * 3 + gridSpaceBetween * 2;
     final up = generateButton(onUp, Icons.arrow_drop_up_sharp);
     final down = generateButton(onDown, Icons.arrow_drop_down_sharp);
-    final leftPane = GridView(
-      padding: EdgeInsets.zero,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3, // 横轴三个子元素
-        childAspectRatio: 1.0, // 宽高比为1时，子元素的长宽一样
-      ),
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      children: <Widget>[
-        empty,
-        forward,
-        empty,
-        left,
-        empty,
-        right,
-        empty,
-        back,
-        empty,
-      ],
+    final leftPane = Joystick(
+        radius: leftPaneSize/2,
+        callback: onJoystickMove,
+        onRelease: onJoyStickRelease
     );
     final rightPane = Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -102,7 +80,7 @@ class ControlPane extends StatelessWidget {
       spacing: gridSpaceBetween,
       children: [up, down],
     );
-    final leftPaneSize = buttonSize * 3 + gridSpaceBetween * 2;
+
     final component = Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
@@ -229,6 +207,90 @@ class McButton extends StatelessWidget {
         ),
         onPressed: onPressed,
         child: child,
+      ),
+    );
+  }
+}
+
+
+
+
+class Joystick extends StatefulWidget {
+  final double radius;
+  final Function(double dx, double dy) callback;
+  final VoidCallback onRelease;
+
+  const Joystick({super.key, required this.radius, required this.callback,required this.onRelease});
+
+  @override
+  createState() => _JoystickState();
+}
+
+class _JoystickState extends State<Joystick> {
+  Offset _stickPosition = Offset.zero;
+  late Offset _center;
+
+  @override
+  void initState() {
+    super.initState();
+    _center = Offset(widget.radius, widget.radius);
+  }
+  final double _stickRadius = 35;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onPanUpdate: (details) {
+        setState(() {
+          // 计算摇杆的位置
+          Offset newOffset = details.localPosition;
+          double dx = newOffset.dx - _center.dx;
+          double dy = newOffset.dy - _center.dy;
+
+          // 限制摇杆在半径范围内移动
+          double distance = sqrt(dx * dx + dy * dy);
+          if (distance > widget.radius) {
+            double scale = widget.radius / distance;
+            dx = dx * scale;
+            dy = dy * scale;
+          }
+
+          _stickPosition = Offset(dx, dy);
+          double normalizedDx = dx / widget.radius;
+          double normalizedDy = dy / widget.radius;
+          // 回调
+          widget.callback(normalizedDx, normalizedDy);
+        });
+      },
+      onPanEnd: (_) {
+        setState(() {
+          _stickPosition = Offset.zero;
+          widget.callback(0.0, 0.0); // 当手指离开时，回调零值
+        });
+        widget.onRelease();
+      },
+      child: Container(
+        width: widget.radius * 2,
+        height: widget.radius * 2,
+        decoration: BoxDecoration(
+          color: Colors.black.withAlpha(40), // 半透明圆形区域
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              left: _center.dx + _stickPosition.dx - _stickRadius/2,
+              top: _center.dy + _stickPosition.dy - _stickRadius/2,
+              child: Container(
+                width: _stickRadius,
+                height: _stickRadius,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withAlpha(80), // 半透明小圆
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
