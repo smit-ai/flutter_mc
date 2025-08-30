@@ -93,7 +93,7 @@ double controlPaneButtonSize=50;
 
 //control
 double rotateSpeed = 0.01;
-double moveSpeed = 4;
+double moveSpeed = 6;
 
 //sun
 double sunRadius=100;
