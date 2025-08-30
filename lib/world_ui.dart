@@ -21,10 +21,7 @@ class World extends StatefulWidget {
 class _WorldState extends State<World> with TickerProviderStateMixin {
   double moveSpeed = 4;
   double _moveSpeedByTime = 0;
-  bool forwardState = false,
-      backState = false,
-      leftState = false,
-      rightState = false,
+  bool joyStickMoveState = false,
       upState = false,
       downState = false;
   Duration deltaTime = Duration.zero;
@@ -39,12 +36,9 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
       deltaTime = elapsed - _lastTime;
       _lastTime = elapsed;
       calculateMoveSpeedByTime();
-      if (forwardState) onForward();
-      if (backState) onBack();
-      if (leftState) onLeft();
-      if (rightState) onRight();
-      if (upState) onUp();
-      if (downState) onDown();
+      if (joyStickMoveState) calculateJoystickMove();
+      if (upState) calcUp();
+      if (downState) calcDown();
       if (needBuild) {
         setState(() {
           needBuild = false;
@@ -67,38 +61,29 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
 
   static const rad90 = pi / 2;
 
-  void onForward() {
-    cameraPosition.x += _moveSpeedByTime * cos(horizonRotate);
-    cameraPosition.z -= _moveSpeedByTime * sin(horizonRotate);
-    needBuild = true;
-  }
 
-  void onBack() {
-    cameraPosition.x += _moveSpeedByTime * cos(horizonRotate + rad90 * 2);
-    cameraPosition.z -= _moveSpeedByTime * sin(horizonRotate + rad90 * 2);
-    needBuild = true;
-  }
-
-  void onLeft() {
-    cameraPosition.x += _moveSpeedByTime * cos(horizonRotate + rad90);
-    cameraPosition.z -= _moveSpeedByTime * sin(horizonRotate + rad90);
-    needBuild = true;
-  }
-
-  void onRight() {
-    cameraPosition.x += _moveSpeedByTime * cos(horizonRotate - rad90);
-    cameraPosition.z -= _moveSpeedByTime * sin(horizonRotate - rad90);
-    needBuild = true;
-  }
-
-  void onUp() {
+  void calcUp() {
     cameraPosition.y += _moveSpeedByTime;
     needBuild = true;
   }
 
-  void onDown() {
+  void calcDown() {
     cameraPosition.y -= _moveSpeedByTime;
     needBuild = true;
+  }
+  double joystickDx=0;
+  double joystickDy=0;
+  void calculateJoystickMove(){
+    cameraPosition.x += _moveSpeedByTime * cos(horizonRotate + rad90 * 2)*joystickDy;
+    cameraPosition.z -= _moveSpeedByTime * sin(horizonRotate + rad90 * 2)*joystickDy;
+    cameraPosition.x += _moveSpeedByTime * cos(horizonRotate - rad90)*joystickDx;
+    cameraPosition.z -= _moveSpeedByTime * sin(horizonRotate - rad90)*joystickDx;
+    needBuild=true;
+  }
+  void onJoystickMove(double dx, double dy) {
+    joystickDx=dx;
+    joystickDy=dy;
+    joyStickMoveState=true;
   }
 
   void onPointerDown(PointerDownEvent event) {
@@ -155,23 +140,15 @@ class _WorldState extends State<World> with TickerProviderStateMixin {
     final game = CustomPaint(size: mediaQueryData.size, painter: render);
 
     final controlPane = ControlPane(
-      onForward: (state) {
-        forwardState = state;
-      },
-      onBack: (state) {
-        backState = state;
-      },
-      onLeft: (state) {
-        leftState = state;
-      },
-      onRight: (state) {
-        rightState = state;
-      },
       onUp: (state) {
         upState = state;
       },
       onDown: (state) {
         downState = state;
+      },
+      onJoystickMove: onJoystickMove,
+      onJoyStickRelease: (){
+        joyStickMoveState=false;
       },
       onPointerDown: onPointerDown,
       onPointerMove: onPointerMove,

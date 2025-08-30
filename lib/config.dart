@@ -85,7 +85,8 @@ double verticalRotate = -0.6;
 
 //ui
 bool displayDetail=false;
-double controlPaneButtonSize=70;
+double controlPaneButtonSize=50;
+double fov=60;
 
 //sun
 double sunRadius=100;

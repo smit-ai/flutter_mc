@@ -225,10 +225,22 @@ class _GraphicsSettingState extends State<GraphicsSetting> {
         });
       },
     );
+    final fovSlider=Slider(
+      value: fov,
+      min: 20,
+      max: 150,
+      onChanged: (value) {
+        setState(() {
+          fov = value;
+        });
+      },
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       spacing: columnSpacing,
       children: [
+        Text("FOV (Vertical): ${fov.toStringAsFixed(2)}"),
+        fovSlider,
         Text("lighting: ${selectedLighting.raw.name}"),
         lightingModels,
         Text("View Distance: $viewDistance"),

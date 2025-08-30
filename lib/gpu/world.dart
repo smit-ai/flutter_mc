@@ -326,7 +326,7 @@ class WorldRender extends CustomPainter {
         _renderTarget == null ||
         size != _lastSize) {
       _perspectiveMatrix = makePerspectiveMatrix(
-        60 * (3.141592653589793 / 180.0),
+        fov * (3.141592653589793 / 180.0),
         size.aspectRatio,
         0.01,
         1000,
