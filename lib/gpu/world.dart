@@ -174,7 +174,7 @@ class WorldRender extends CustomPainter {
     }
     return buffer;
   }
-
+  final transparent=vm.Vector4(0, 0, 0, 0);
   void _buildFogBuffer() {
     final far = ((viewDistance) * chunkSize);
     final fogData = FogData(

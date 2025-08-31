@@ -3,7 +3,7 @@
 layout(binding = 0)uniform MaterialBlock {
     vec3 ambient;
     vec3 diffuse;
-    vec3 specular;
+    vec4 specular;//a is texture specular scale
     vec4 shininess;//actual shininess is shininess.x , shininess.y is specularIntensity decay index
 } material;
 
@@ -32,6 +32,8 @@ void main() {
     vec4 textColor4=texture(tex, v_texture_coords);
     // 纹理采样
     vec3 texColor = textColor4.rgb;
+    //text grey
+    float grey=clamp(dot(textColor4.rgb,vec3(0.299, 0.587, 0.114))*material.specular.a,0.1,1.0);
 
     // 法线 & 光照方向
     vec3 norm = normalize(v_normal);
@@ -50,7 +52,7 @@ void main() {
     vec3 halfwayDir = normalize(lightDir + viewDir);
     float shine = max(material.shininess.x, 1.0); // 确保shininess至少为1
     float spec = pow(max(dot(norm, halfwayDir), 0.0), shine);
-    vec3 specular = light.specular * spec * material.specular;
+    vec3 specular = light.specular * spec * material.specular.xyz*grey;
 
     // 计算高光强度并影响alpha通道
     float specularIntensity = dot(specular, vec3(0.299, 0.587, 0.114)); // 将高光颜色转换为灰度强度
