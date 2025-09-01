@@ -7,7 +7,9 @@ A Minecraft-like game demo using Flutter GPU API.
 |![](./screenshots/main.png)|
 
 
-**Note: need impeller backend** (windows unavailable now)
+**Note: need impeller backend** 
+
+For Android, there are some evidence that snapdragon devices are not supported yet, while dimensity works fine.
 
 # feature
 - different types of blocks
