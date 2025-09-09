@@ -1,5 +1,5 @@
 #version 460 core
-layout(binding = 6) uniform FrameInfo {
+layout(binding = 6,std140) uniform FrameInfo {
   mat4 mvp;
 }frame_info;
 

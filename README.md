@@ -20,8 +20,6 @@ For Android, there are some evidence that snapdragon devices are not supported y
 
 # known issue
 
-[FlutterGPU OOM issue on Android](https://github.com/flutter/flutter/issues/172068) was recently fixed but not yet available on the beta channel.
-
 tree leaves is covered by tree leaves
 
 # dev blog

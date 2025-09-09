@@ -1,6 +1,6 @@
 #version 460 core
 
-layout(binding = 5) uniform SunBlock{
+layout(binding = 5,std140) uniform SunBlock{
     vec4 color;
     vec3 center;
     vec4 edge;//x is start, y is end

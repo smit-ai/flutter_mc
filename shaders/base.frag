@@ -1,23 +1,23 @@
 #version 460 core
 
-layout(binding = 0)uniform MaterialBlock {
+layout(binding = 0,std140)uniform MaterialBlock {
     vec3 ambient;
     vec3 diffuse;
     vec4 specular;//a is texture specular scale
     vec4 shininess;//actual shininess is shininess.x , shininess.y is specularIntensity decay index
 } material;
 
-layout(binding = 1) uniform LightBlock {
+layout(binding = 1,std140) uniform LightBlock {
     vec3 direction;
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 } light;
-layout(binding = 2) uniform CameraBlock {
+layout(binding = 2,std140) uniform CameraBlock {
     vec3 viewPos;
 } camera;
 layout(binding = 3) uniform sampler2D tex;
-layout(binding = 4) uniform FogBlock{
+layout(binding = 4,std140) uniform FogBlock{
     vec4 color;
     vec4 range;//x is start, y is end, z is height compression
 } fog;
